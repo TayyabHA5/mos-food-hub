@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { restaurants } from '../../../data/restaurants'
+import { restaurants as initialRestaurants } from '../../../data/restaurants'
+import { readRestaurants } from '../../../data/restaurant-storage'
 
 const defaultReviews = [
   { name: 'Sara', rating: 5, text: 'Best menu experience. Loved the food quality and portion size.' },
@@ -12,11 +12,7 @@ const defaultReviews = [
 ]
 
 export default function RestaurantPage({ params }) {
-  const restaurant = restaurants.find((r) => r.slug === params.slug)
-
-  if (!restaurant) {
-    notFound()
-  }
+  const [restaurant, setRestaurant] = useState(() => initialRestaurants.find((item) => item.slug === params.slug) || null)
 
   const [restaurantLogo, setRestaurantLogo] = useState('')
   const [menuImages, setMenuImages] = useState([])
@@ -33,6 +29,11 @@ export default function RestaurantPage({ params }) {
   const [activeImage, setActiveImage] = useState(0)
 
   useEffect(() => {
+    setRestaurant(readRestaurants().find((item) => item.slug === params.slug) || null)
+  }, [params.slug])
+
+  useEffect(() => {
+    if (!restaurant) return
     const savedImages = window.localStorage.getItem(`mos-menu-images-${restaurant.slug}`)
     setMenuImages(savedImages ? JSON.parse(savedImages) : [])
 
@@ -44,7 +45,7 @@ export default function RestaurantPage({ params }) {
       const parsed = JSON.parse(savedRatings)
       setRestaurantReviews(parsed.reviews || defaultReviews)
     }
-  }, [restaurant.slug])
+  }, [restaurant])
 
   useEffect(() => {
     if (!viewerOpen) {
@@ -144,6 +145,10 @@ export default function RestaurantPage({ params }) {
       const delta = event.deltaY > 0 ? -0.2 : 0.2
       return Math.min(3, Math.max(1, Number((current + delta).toFixed(2))))
     })
+  }
+
+  if (!restaurant) {
+    return <main className="min-h-screen bg-[#071722] p-5 text-[#edf5ff]">Restaurant not found.</main>
   }
 
   return (

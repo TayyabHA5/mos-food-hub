@@ -1,7 +1,19 @@
+ 'use client'
+
 import Link from 'next/link'
-import { restaurants } from '../../data/restaurants'
+import { useEffect, useState } from 'react'
+import { restaurants as initialRestaurants } from '../../data/restaurants'
 
 export default function AdminDashboard() {
+  const [restaurantList, setRestaurantList] = useState(initialRestaurants)
+
+  useEffect(() => {
+    const savedRestaurants = JSON.parse(window.localStorage.getItem('mos-restaurants') || 'null')
+    if (Array.isArray(savedRestaurants)) {
+      setRestaurantList(savedRestaurants)
+    }
+  }, [])
+
   return (
     <main className="min-h-screen bg-[#f4efe7] text-[#302a24]">
       <div className="mx-auto flex min-h-screen max-w-6xl">
@@ -28,7 +40,7 @@ export default function AdminDashboard() {
 
           <div className="mt-8 grid gap-3 sm:grid-cols-3">
             {[
-              ['Restaurants', restaurants.length, 'Published locations'],
+              ['Restaurants', restaurantList.length, 'Published locations'],
               ['Menu format', 'Images', 'Image-first public menus'],
               ['Menu status', 'Live', 'Public view is active'],
             ].map(([label, value, detail]) => (
@@ -49,7 +61,7 @@ export default function AdminDashboard() {
               <Link href="/admin/restaurants?new=true" className="body-font rounded-xl bg-[#b65b2a] px-3 py-2 text-[10px] font-bold text-white">+ Add restaurant</Link>
             </div>
             <div className="mt-5 divide-y divide-[#eee3d9]">
-              {restaurants.map((restaurant) => (
+              {restaurantList.map((restaurant) => (
                 <div key={restaurant.slug} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
                   <div className="food-pattern flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white">{restaurant.name.slice(0, 1)}</div>
                   <div className="min-w-0 flex-1">

@@ -2,17 +2,23 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { restaurants } from '../../../data/restaurants'
+import { restaurants as initialRestaurants } from '../../../data/restaurants'
+import { readRestaurants } from '../../../data/restaurant-storage'
 
 export default function MenuImagesAdminPage() {
-  const [restaurantSlug, setRestaurantSlug] = useState(restaurants[0].slug)
+  const [restaurantList, setRestaurantList] = useState(initialRestaurants)
+  const [restaurantSlug, setRestaurantSlug] = useState(initialRestaurants[0].slug)
   const [images, setImages] = useState(null)
-  const restaurant = restaurants.find((item) => item.slug === restaurantSlug)
+  const restaurant = restaurantList.find((item) => item.slug === restaurantSlug) || restaurantList[0]
 
   useEffect(() => {
+    const savedRestaurants = readRestaurants()
+    setRestaurantList(savedRestaurants)
     const requestedRestaurant = new URLSearchParams(window.location.search).get('restaurant')
-    if (restaurants.some((item) => item.slug === requestedRestaurant)) {
+    if (savedRestaurants.some((item) => item.slug === requestedRestaurant)) {
       setRestaurantSlug(requestedRestaurant)
+    } else if (savedRestaurants.length) {
+      setRestaurantSlug(savedRestaurants[0].slug)
     }
   }, [])
 
@@ -75,7 +81,7 @@ export default function MenuImagesAdminPage() {
 
         <section className="mt-8 rounded-2xl border border-[#e3d5c8] bg-[#fffaf2] p-4 sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <label className="body-font text-[10px] font-bold uppercase tracking-[0.12em] text-[#997967]">Restaurant<select value={restaurantSlug} onChange={(event) => setRestaurantSlug(event.target.value)} className="ml-3 rounded-lg border border-[#dfd2c4] bg-white px-3 py-2 text-xs font-normal normal-case tracking-normal outline-none"><option value={restaurant.slug}>{restaurant.name}</option>{restaurants.filter((item) => item.slug !== restaurant.slug).map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}</select></label>
+            <label className="body-font text-[10px] font-bold uppercase tracking-[0.12em] text-[#997967]">Restaurant<select value={restaurantSlug} onChange={(event) => setRestaurantSlug(event.target.value)} className="ml-3 rounded-lg border border-[#dfd2c4] bg-white px-3 py-2 text-xs font-normal normal-case tracking-normal outline-none">{restaurantList.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}</select></label>
             <span className="body-font text-[10px] text-[#917d6e]">{images?.length || 0} uploaded pages</span>
           </div>
 

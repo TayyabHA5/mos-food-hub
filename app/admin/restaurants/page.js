@@ -1,34 +1,72 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
-import { restaurants as initialRestaurants } from '../../../data/restaurants'
+import { useEffect, useState } from 'react'
+import { defaultFloors, restaurants as initialRestaurants } from '../../../data/restaurants'
+import { readRestaurants, writeRestaurants } from '../../../data/restaurant-storage'
 
 export default function RestaurantsAdminPage() {
   const [restaurantList, setRestaurantList] = useState(initialRestaurants)
   const [showForm, setShowForm] = useState(false)
   const [search, setSearch] = useState('')
+  const [floors, setFloors] = useState(defaultFloors)
+  const [selectedFloor, setSelectedFloor] = useState(defaultFloors[0])
+  const [newFloor, setNewFloor] = useState('')
+  const [showFloorInput, setShowFloorInput] = useState(false)
+
+  useEffect(() => {
+    setRestaurantList(readRestaurants())
+
+    const savedFloors = JSON.parse(window.localStorage.getItem('mos-floors') || 'null')
+    if (Array.isArray(savedFloors) && savedFloors.length) {
+      setFloors(savedFloors)
+    }
+  }, [])
+
+  useEffect(() => {
+    window.localStorage.setItem('mos-floors', JSON.stringify(floors))
+  }, [floors])
 
   const filteredRestaurants = restaurantList.filter((restaurant) => restaurant.name.toLowerCase().includes(search.toLowerCase()))
 
   function addRestaurant(event) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    const name = formData.get('name')
-    const cuisine = formData.get('cuisine')
-    const floor = formData.get('floor')
+    const name = String(formData.get('name') || '').trim()
+    const cuisine = String(formData.get('cuisine') || '').trim()
+    const floor = String(formData.get('floor') || '').trim()
+    const tagsInput = String(formData.get('tags') || '').trim()
+    const tags = tagsInput ? tagsInput.split(',').map((tag) => tag.trim()).filter(Boolean) : []
 
-    setRestaurantList((current) => [...current, {
+    const newRestaurant = {
       slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       name,
       cuisine,
       floor,
       tagline: 'Fresh menu coming soon.',
+      tags,
       logo: '',
       menu: [],
-    }])
+      searchText: [name, cuisine, floor, ...tags].join(' ').toLowerCase(),
+    }
+
+    setRestaurantList((current) => [...current, newRestaurant])
+    writeRestaurants([...restaurantList, newRestaurant])
     setShowForm(false)
     event.currentTarget.reset()
+  }
+
+  function handleAddFloor() {
+    const trimmed = newFloor.trim()
+    if (!trimmed) return
+
+    setFloors((current) => {
+      const next = [...new Set([...current, trimmed])]
+      return next
+    })
+    setSelectedFloor(trimmed)
+    setNewFloor('')
+    setShowFloorInput(false)
   }
 
   return (
@@ -67,7 +105,83 @@ export default function RestaurantsAdminPage() {
           </div>
         </section>
 
-        {showForm && <div className="fixed inset-0 z-10 flex items-center justify-center bg-[#2d2925]/50 p-5"><form onSubmit={addRestaurant} className="w-full max-w-md rounded-2xl bg-[#fffaf2] p-5 shadow-2xl"><div className="flex items-center justify-between"><h2 className="text-xl font-bold">Add restaurant</h2><button type="button" onClick={() => setShowForm(false)} className="text-xl text-[#806f63]">×</button></div><div className="body-font mt-5 space-y-3"><input required name="name" placeholder="Restaurant name" className="h-11 w-full rounded-lg border border-[#dfd2c4] px-3 text-sm outline-none focus:border-[#b65b2a]" /><input required name="cuisine" placeholder="Cuisine e.g. Fast Food" className="h-11 w-full rounded-lg border border-[#dfd2c4] px-3 text-sm outline-none focus:border-[#b65b2a]" /><select name="floor" className="h-11 w-full rounded-lg border border-[#dfd2c4] bg-white px-3 text-sm"><option>Ground Floor</option><option>1st Floor</option><option>2nd Floor</option></select><div className="flex justify-end gap-2 pt-2"><button type="button" onClick={() => setShowForm(false)} className="rounded-lg border border-[#dfd2c4] px-3 py-2 text-xs font-bold">Cancel</button><button type="submit" className="rounded-lg bg-[#b65b2a] px-3 py-2 text-xs font-bold text-white">Create restaurant</button></div></div></form></div>}
+        {showForm && (
+          <div className="fixed inset-0 z-10 flex items-center justify-center bg-[#2d2925]/55 p-5 backdrop-blur-[1px]">
+            <form onSubmit={addRestaurant} className="w-full max-w-lg rounded-[28px] border border-[#ead8c7] bg-[#fffaf2] p-5 shadow-[0_24px_60px_rgba(45,41,37,0.18)] sm:p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="body-font text-[10px] font-bold uppercase tracking-[0.18em] text-[#b65b2a]">New restaurant</p>
+                  <h2 className="mt-2 text-2xl font-bold text-[#2d2925]">Add restaurant</h2>
+                </div>
+                <button type="button" onClick={() => setShowForm(false)} className="flex h-9 w-9 items-center justify-center rounded-full border border-[#dfd2c4] bg-[#f9f2ea] text-xl leading-none text-[#806f63] transition hover:bg-[#f3e8df]">×</button>
+              </div>
+
+              <div className="body-font mt-6 space-y-4">
+                <div>
+                  <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.12em] text-[#997967]">Restaurant name</label>
+                  <input required name="name" placeholder="e.g. Pizza Point" className="h-11 w-full rounded-xl border border-[#dfd2c4] bg-white px-3 text-sm text-[#2d2925] placeholder:text-[#9a8171] outline-none transition focus:border-[#b65b2a] focus:ring-2 focus:ring-[#f0d4b6]" />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.12em] text-[#997967]">Cuisine</label>
+                    <input required name="cuisine" placeholder="e.g. Fast Food" className="h-11 w-full rounded-xl border border-[#dfd2c4] bg-white px-3 text-sm text-[#2d2925] placeholder:text-[#9a8171] outline-none transition focus:border-[#b65b2a] focus:ring-2 focus:ring-[#f0d4b6]" />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.12em] text-[#997967]">Floor</label>
+                    <select
+                      name="floor"
+                      value={selectedFloor}
+                      onChange={(event) => {
+                        const value = event.target.value
+                        if (value === '__add_new_floor__') {
+                          setShowFloorInput(true)
+                          return
+                        }
+                        setSelectedFloor(value)
+                        setShowFloorInput(false)
+                      }}
+                      className="h-11 w-full rounded-xl border border-[#dfd2c4] bg-white px-3 text-sm text-[#2d2925] outline-none transition focus:border-[#b65b2a] focus:ring-2 focus:ring-[#f0d4b6]"
+                    >
+                      {floors.map((floor) => (
+                        <option key={floor} value={floor}>{floor}</option>
+                      ))}
+                      <option value="__add_new_floor__">Add new floor</option>
+                    </select>
+
+                    {showFloorInput && (
+                      <div role="dialog" aria-label="Add new floor" className="mt-3 rounded-2xl border border-[#e8cdb7] bg-[#fff7ed] p-3 shadow-[0_10px_24px_rgba(96,55,31,0.1)]">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-xs font-bold text-[#5b3827]">Add new floor</p>
+                            <p className="mt-1 text-[10px] text-[#917d6e]">Enter the floor name to add it to this list.</p>
+                          </div>
+                          <button type="button" onClick={() => { setShowFloorInput(false); setNewFloor('') }} aria-label="Close add floor dialog" className="text-lg leading-none text-[#997967]">×</button>
+                        </div>
+                        <div className="mt-3 flex gap-2">
+                          <input autoFocus value={newFloor} onChange={(event) => setNewFloor(event.target.value)} placeholder="e.g. 3rd Floor" className="h-10 min-w-0 flex-1 rounded-xl border border-[#dfd2c4] bg-white px-3 text-sm placeholder:text-[#9a8171] outline-none transition focus:border-[#b65b2a] focus:ring-2 focus:ring-[#f0d4b6]" />
+                          <button type="button" onClick={handleAddFloor} className="rounded-xl bg-[#b65b2a] px-4 py-2 text-[10px] font-bold text-white">Add</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.12em] text-[#997967]">Tags</label>
+                  <input name="tags" placeholder="pizza, burger, family" className="h-11 w-full rounded-xl border border-[#dfd2c4] bg-white px-3 text-sm text-[#2d2925] placeholder:text-[#9a8171] outline-none transition focus:border-[#b65b2a] focus:ring-2 focus:ring-[#f0d4b6]" />
+                  <p className="mt-2 text-[10px] text-[#917d6e]">Separate tags with commas for better search results.</p>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button type="button" onClick={() => setShowForm(false)} className="rounded-xl border border-[#dfd2c4] bg-[#f8f2ec] px-4 py-2.5 text-[11px] font-bold text-[#5b4e45] transition hover:bg-[#f2e5d8]">Cancel</button>
+                  <button type="submit" className="rounded-xl bg-[#b65b2a] px-4 py-2.5 text-[11px] font-bold text-white shadow-[0_10px_25px_rgba(182,91,42,0.28)] transition hover:bg-[#9d4920]">Create restaurant</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        )}
       </div>
     </main>
   )

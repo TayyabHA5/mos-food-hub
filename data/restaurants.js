@@ -3,6 +3,8 @@
 // (jaise Android mein Intent extras ke sath ek ID pass karte hain,
 // yahan hum slug use karte hain URL mein: /restaurant/karachi-broast)
 
+export const defaultFloors = ['Ground Floor', '1st Floor', '2nd Floor']
+
 export const restaurants = [
   {
     slug: 'karachi-broast',
@@ -10,6 +12,7 @@ export const restaurants = [
     cuisine: 'Fast Food',
     floor: 'Ground Floor',
     tagline: 'Crispy broast, since forever.',
+    tags: ['broast', 'fries', 'fast food', 'family', 'ground floor'],
     logo: '',
     menu: [
       {
@@ -28,6 +31,7 @@ export const restaurants = [
         ],
       },
     ],
+    searchText: 'karachi broast fast food ground floor broast burger fries coleslaw family',
   },
   {
     slug: 'punjabi-tikka-house',
@@ -35,6 +39,7 @@ export const restaurants = [
     cuisine: 'Desi / BBQ',
     floor: '1st Floor',
     tagline: 'Charcoal grilled, Punjab style.',
+    tags: ['bbq', 'tikka', 'seekh kebab', 'desi', 'grilled', 'family'],
     logo: '',
     menu: [
       {
@@ -53,6 +58,7 @@ export const restaurants = [
         ],
       },
     ],
+    searchText: 'punjabi tikka house desi bbq 1st floor chicken tikka seekh kabab malai boti naan roghni naan grilled family',
   },
   {
     slug: 'pizza-point',
@@ -60,6 +66,7 @@ export const restaurants = [
     cuisine: 'Italian / Fast Food',
     floor: '1st Floor',
     tagline: 'Hot, cheesy, straight from the oven.',
+    tags: ['pizza', 'wings', 'italian', 'fast food', 'cheesy', 'family'],
     logo: '',
     menu: [
       {
@@ -78,6 +85,7 @@ export const restaurants = [
         ],
       },
     ],
+    searchText: 'pizza point italian fast food 1st floor pizza wings garlic bread chicken tikka pizza fajita pizza cheese lovers cheesy family',
   },
   {
     slug: 'sargodha-chai-wala',
@@ -85,6 +93,7 @@ export const restaurants = [
     cuisine: 'Tea / Snacks',
     floor: 'Ground Floor',
     tagline: 'Doodh patti that hits different.',
+    tags: ['chai', 'tea', 'snacks', 'pakora', 'samosa', 'ground floor'],
     logo: '',
     menu: [
       {
@@ -102,5 +111,6 @@ export const restaurants = [
         ],
       },
     ],
+    searchText: 'sargodha chai wala tea snacks ground floor doodh patti kashmiri chai samosa pakora plate chai',
   },
 ]
