@@ -10,8 +10,7 @@ export default function RestaurantPage({ params }) {
 
   const [restaurant, setRestaurant] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [backendUrl, setBackendUrl] = useState('http://localhost:8000')
-
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
   const [menuImages, setMenuImages] = useState([])
   const [restaurantRatings, setRestaurantRatings] = useState([])
   const [rating, setRating] = useState(0)
@@ -31,12 +30,6 @@ export default function RestaurantPage({ params }) {
   const [touchEndX, setTouchEndX] = useState(0)
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname
-      if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-        setBackendUrl(`http://${hostname}:8000`)
-      }
-    }
     fetchRestaurant()
   }, [params.slug])
 
@@ -56,26 +49,22 @@ export default function RestaurantPage({ params }) {
 
   const fetchRestaurant = async () => {
     try {
-      const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
-      const activeUrl = currentHost !== 'localhost' && currentHost !== '127.0.0.1'
-        ? `http://${currentHost}:8000`
-        : 'http://localhost:8000'
 
-      const response = await fetch(`${activeUrl}/restaurants/${params.slug}`)
+
+      const response = await fetch(`${backendUrl}/restaurants/${params.slug}`)
       if (!response.ok) throw new Error('Not found')
       const data = await response.json()
       setRestaurant(data)
 
       if (data.menu_images) {
         const images = JSON.parse(data.menu_images).map(url => ({
-          url: url.startsWith('http') ? url : `${activeUrl}${url}`,
+          url: url.startsWith('http') ? url : `${backendUrl}${url}`,  // ✅ activeUrl → backendUrl
           name: 'Menu Page'
         }))
         setMenuImages(images)
       }
 
-      // Fetch real ratings
-      const ratingsRes = await fetch(`${activeUrl}/ratings/${data.id}`)
+      const ratingsRes = await fetch(`${backendUrl}/ratings/${data.id}`)  // ✅ activeUrl → backendUrl
       if (ratingsRes.ok) {
         const ratingsData = await ratingsRes.json()
         setRestaurantRatings(ratingsData)
@@ -306,9 +295,8 @@ export default function RestaurantPage({ params }) {
                     <button
                       key={index}
                       onClick={() => setActiveImage(index)}
-                      className={`h-16 w-12 shrink-0 overflow-hidden rounded-lg border-2 bg-black transition-all ${
-                        activeImage === index ? 'border-[#f5ba4b] scale-105' : 'border-[#2a3d4f] opacity-70 hover:opacity-100'
-                      }`}
+                      className={`h-16 w-12 shrink-0 overflow-hidden rounded-lg border-2 bg-black transition-all ${activeImage === index ? 'border-[#f5ba4b] scale-105' : 'border-[#2a3d4f] opacity-70 hover:opacity-100'
+                        }`}
                     >
                       <img src={image.url} alt="" className="h-full w-full object-cover" />
                     </button>
@@ -441,9 +429,8 @@ export default function RestaurantPage({ params }) {
 
           {/* Lightbox Main Image, Touch Swipe & Touch/Mouse Drag Panning Area */}
           <div
-            className={`relative flex-1 flex items-center justify-center my-2 overflow-hidden ${
-              zoomLevel > 1.0 ? 'cursor-grab active:cursor-grabbing' : ''
-            }`}
+            className={`relative flex-1 flex items-center justify-center my-2 overflow-hidden ${zoomLevel > 1.0 ? 'cursor-grab active:cursor-grabbing' : ''
+              }`}
             onTouchStart={(e) => handlePointerDown(e.touches[0].clientX, e.touches[0].clientY)}
             onTouchMove={(e) => handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)}
             onTouchEnd={handlePointerUp}
@@ -507,9 +494,8 @@ export default function RestaurantPage({ params }) {
                   <button
                     key={idx}
                     onClick={() => { setActiveImage(idx); resetZoom(); }}
-                    className={`h-12 w-10 shrink-0 overflow-hidden rounded-lg border-2 bg-black transition-all ${
-                      activeImage === idx ? 'border-[#f5ba4b] scale-110 shadow-md shadow-[#f5ba4b]/30' : 'border-[#2d3d52] opacity-50'
-                    }`}
+                    className={`h-12 w-10 shrink-0 overflow-hidden rounded-lg border-2 bg-black transition-all ${activeImage === idx ? 'border-[#f5ba4b] scale-110 shadow-md shadow-[#f5ba4b]/30' : 'border-[#2d3d52] opacity-50'
+                      }`}
                   >
                     <img src={img.url} alt="" className="h-full w-full object-cover" />
                   </button>
