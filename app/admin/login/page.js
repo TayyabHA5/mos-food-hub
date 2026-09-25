@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function AdminLogin() {
@@ -9,19 +9,10 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [backendUrl, setBackendUrl] = useState('http://localhost:8000')
   const router = useRouter()
 
-  // Detect the current IP and set Backend URL accordingly
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname
-      // If we are accessing via IP, use that IP for backend too
-      if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-        setBackendUrl(`http://${hostname}:8000`)
-      }
-    }
-  }, [])
+  // ✅ Environment variable se backend URL lo, hostname-detection ki zaroorat nahi
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -29,7 +20,7 @@ export default function AdminLogin() {
     setError('')
 
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 8000)
+    const timeoutId = setTimeout(() => controller.abort(), 15000) // Render free tier cold start ke liye 15s
 
     try {
       const params = new URLSearchParams()
@@ -70,7 +61,6 @@ export default function AdminLogin() {
       setLoading(false)
     }
   }
-
   return (
     <main className="relative flex min-h-screen items-center justify-center bg-[#08121e] bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(245,186,75,0.15),rgba(255,255,255,0))] p-4 text-[#e6edf8] overflow-hidden">
       {/* Decorative ambient background blur lights */}
@@ -106,11 +96,10 @@ export default function AdminLogin() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className={`w-full rounded-2xl border bg-[#08121e] px-4 py-3.5 text-sm text-[#eaf3ff] outline-none transition-all duration-200 ${
-                error
+              className={`w-full rounded-2xl border bg-[#08121e] px-4 py-3.5 text-sm text-[#eaf3ff] outline-none transition-all duration-200 ${error
                   ? 'border-red-500/50 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
                   : 'border-[#1e2e40] focus:border-[#f5ba4b] focus:ring-2 focus:ring-[#f5ba4b]/20'
-              }`}
+                }`}
               placeholder="e.g. admin"
               required
             />
@@ -123,11 +112,10 @@ export default function AdminLogin() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className={`w-full rounded-2xl border bg-[#08121e] pl-4 pr-12 py-3.5 text-sm text-[#eaf3ff] outline-none transition-all duration-200 ${
-                  error
+                className={`w-full rounded-2xl border bg-[#08121e] pl-4 pr-12 py-3.5 text-sm text-[#eaf3ff] outline-none transition-all duration-200 ${error
                     ? 'border-red-500/50 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
                     : 'border-[#1e2e40] focus:border-[#f5ba4b] focus:ring-2 focus:ring-[#f5ba4b]/20'
-                }`}
+                  }`}
                 placeholder="••••••••"
                 required
               />
