@@ -9,9 +9,6 @@ def get_direct_password_hash(password: str) -> str:
     return hashed.decode('utf-8')
 
 def create_initial_admin():
-    # Make sure tables exist
-    Base.metadata.create_all(bind=engine)
-
     db = SessionLocal()
     try:
         # Check if admin already exists
@@ -34,7 +31,7 @@ def create_initial_admin():
 
         db.add(admin_user)
         db.commit()
-        print("\n🎉 SUCCESS: Initial Super Admin User Created Successfully!")
+        print("\nSUCCESS: Initial Super Admin User Created Successfully!")
         print("============ LOGIN CREDENTIALS ============")
         print("Username: admin")
         print("Password: adminpassword123")

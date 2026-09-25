@@ -7,10 +7,6 @@ import bcrypt
 from .database import Base, engine, SessionLocal
 from . import models
 from .routers import restaurants, notifications, auth_router, ratings
-
-# Create tables in SQLite database
-Base.metadata.create_all(bind=engine)
-
 # Ensure default admin user exists
 def init_admin():
     db = SessionLocal()

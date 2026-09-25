@@ -12,7 +12,7 @@ export default function AdminLogin() {
   const router = useRouter()
 
   // ✅ Environment variable se backend URL lo, hostname-detection ki zaroorat nahi
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mall-of-sargodha-backend-dl1yin-7b34d3-187-77-180-230.sslip.io'
 
   const handleLogin = async (e) => {
     e.preventDefault()
