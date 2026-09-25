@@ -10,7 +10,7 @@ export default function SuperAdminDashboard() {
   const [showMenuModal, setShowMenuModal] = useState(false)
 
   const [loading, setLoading] = useState(true)
-  const [backendUrl, setBackendUrl] = useState('http://localhost:8000')
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mall-of-sargodha-backend-dl1yin-7b34d3-187-77-180-230.sslip.io'
 
   // Add Outlet State
   const [selectedFiles, setSelectedFiles] = useState([])
@@ -48,12 +48,7 @@ export default function SuperAdminDashboard() {
   const router = useRouter()
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname
-      if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-        setBackendUrl(`http://${hostname}:8000`)
-      }
-    }
+
 
     const role = localStorage.getItem('mos-role')
     const token = localStorage.getItem('mos-token')
@@ -93,12 +88,7 @@ export default function SuperAdminDashboard() {
 
   const fetchRestaurants = async () => {
     try {
-      const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
-      const activeUrl = currentHost !== 'localhost' && currentHost !== '127.0.0.1'
-        ? `http://${currentHost}:8000`
-        : 'http://localhost:8000'
-
-      const response = await fetch(`${activeUrl}/restaurants/`)
+      const response = await fetch(`${backendUrl}/restaurants/`)
       if (!response.ok) throw new Error('Failed to load data')
       const data = await response.json()
       setRestaurants(data)

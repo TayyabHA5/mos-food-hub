@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 export default function AdminDashboard() {
   const [restaurantList, setRestaurantList] = useState([])
   const [loading, setLoading] = useState(true)
-  const [backendUrl, setBackendUrl] = useState('http://localhost:8000')
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mall-of-sargodha-backend-dl1yin-7b34d3-187-77-180-230.sslip.io'
   const router = useRouter()
 
   useEffect(() => {
@@ -20,25 +20,14 @@ export default function AdminDashboard() {
       return
     }
 
-    // 2. Network detection
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname
-      if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-        setBackendUrl(`http://${hostname}:8000`)
-      }
-    }
+
 
     fetchRestaurants()
   }, [router])
 
   const fetchRestaurants = async () => {
     try {
-      const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
-      const activeUrl = currentHost !== 'localhost' && currentHost !== '127.0.0.1'
-        ? `http://${currentHost}:8000`
-        : 'http://localhost:8000'
-
-      const response = await fetch(`${activeUrl}/restaurants/`)
+      const response = await fetch(`${backendUrl}/restaurants/`)
       if (!response.ok) throw new Error('Failed to fetch')
       const data = await response.json()
       setRestaurantList(data)
