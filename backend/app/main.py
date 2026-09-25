@@ -38,7 +38,7 @@ app = FastAPI(title="MOS Food Hub API")
 # Allow CORS for all origins (both HTTP and HTTPS e.g. Vercel)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://mos-food-hub.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
