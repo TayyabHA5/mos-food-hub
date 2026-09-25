@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { defaultFloors } from '../../../../data/restaurants'
+import { defaultFloors as initialFloors } from '../../../../data/restaurants'
 import { readRestaurants, writeRestaurants } from '../../../../data/restaurant-storage'
 
 export default function RestaurantEditor({ params }) {
@@ -12,15 +12,25 @@ export default function RestaurantEditor({ params }) {
   const [restaurantName, setRestaurantName] = useState('')
   const [cuisine, setCuisine] = useState('')
   const [tagline, setTagline] = useState('')
-  const [floor, setFloor] = useState(defaultFloors[0])
+  const [floors, setFloors] = useState(initialFloors)
+  const [floor, setFloor] = useState(initialFloors[0])
   const [published, setPublished] = useState(true)
   const [saved, setSaved] = useState(false)
   const [logoUrl, setLogoUrl] = useState('')
 
   useEffect(() => {
+    let savedFloors = initialFloors
+    try {
+      const storedFloors = JSON.parse(window.localStorage.getItem('mos-floors') || 'null')
+      if (Array.isArray(storedFloors) && storedFloors.length) savedFloors = storedFloors
+    } catch (error) {
+      savedFloors = initialFloors
+    }
+
     const foundRestaurant = readRestaurants().find((item) => item.slug === params.slug)
     setRestaurant(foundRestaurant || null)
     if (!foundRestaurant) return
+    setFloors([...new Set([...savedFloors, foundRestaurant.floor].filter(Boolean))])
     setRestaurantName(foundRestaurant.name)
     setCuisine(foundRestaurant.cuisine)
     setTagline(foundRestaurant.tagline)
@@ -74,6 +84,8 @@ export default function RestaurantEditor({ params }) {
     window.localStorage.removeItem(`mos-restaurant-ratings-${restaurant.slug}`)
     router.push('/admin/restaurants')
   }
+
+  const defaultFloors = floors
 
   if (!restaurant) return <main className="min-h-screen bg-[#f4efe7] p-5 text-[#302a24]">Restaurant not found.</main>
 

@@ -18,8 +18,9 @@ export default function MenuItemsAdminPage() {
 
   useEffect(() => {
     const savedRestaurants = readRestaurants()
+    const requestedRestaurant = new URLSearchParams(window.location.search).get('restaurant')
     setRestaurantList(savedRestaurants)
-    setRestaurantSlug((current) => savedRestaurants.some((item) => item.slug === current) ? current : savedRestaurants[0]?.slug || '')
+    setRestaurantSlug(savedRestaurants.some((item) => item.slug === requestedRestaurant) ? requestedRestaurant : savedRestaurants[0]?.slug || '')
     setAvailableItems(new Set(savedRestaurants.flatMap(flattenItems).map((item) => item.name)))
     setMenuItemsByRestaurant(Object.fromEntries(savedRestaurants.map((restaurant) => [restaurant.slug, flattenItems(restaurant)])))
   }, [])
