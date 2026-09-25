@@ -1,14 +1,19 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
+from dotenv import load_dotenv
 
-# SQLite database URL for local development
-SQLALCHEMY_DATABASE_URL = "sqlite:///./app.db"
+# Load .env file from the root directory
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env'))
 
-# Engine configuration for SQLite
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+# PostgreSQL database URL from environment or default
+SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL") or os.getenv(
+    "DATABASE_URL", 
+    "postgresql://postgres:postgres@localhost:5432/mos_food_hub"
 )
+
+# Engine configuration for PostgreSQL
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
