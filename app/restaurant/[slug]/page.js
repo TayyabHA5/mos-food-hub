@@ -1,22 +1,30 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import Navbar from '../../../components/Navbar'
+import Footer from '../../../components/Footer'
 
 export default function RestaurantPage({ params }) {
   const searchParams = useSearchParams()
-  const tableId = searchParams.get('table')
+  const tableId = searchParams ? searchParams.get('table') : null
 
   const [restaurant, setRestaurant] = useState(null)
   const [loading, setLoading] = useState(true)
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mall-of-sargodha-backend-dl1yin-7b34d3-187-77-180-230.sslip.io'
+  const [error, setError] = useState(null)
+  const backendUrl =
+    process.env.NEXT_PUBLIC_API_URL ||
+    'https://mall-of-sargodha-backend-dl1yin-7b34d3-187-77-180-230.sslip.io'
+
   const [menuImages, setMenuImages] = useState([])
   const [restaurantRatings, setRestaurantRatings] = useState([])
   const [rating, setRating] = useState(0)
+  const [hoverRating, setHoverRating] = useState(0)
   const [reviewText, setReviewText] = useState('')
   const [userName, setUserName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [reviewSuccess, setReviewSuccess] = useState(false)
 
   // Interactive Lightbox State
   const [viewerOpen, setViewerOpen] = useState(false)
@@ -25,9 +33,9 @@ export default function RestaurantPage({ params }) {
   const [panPosition, setPanPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-
   const [touchStartX, setTouchStartX] = useState(0)
   const [touchEndX, setTouchEndX] = useState(0)
+  const [logoError, setLogoError] = useState(false)
 
   useEffect(() => {
     fetchRestaurant()
@@ -48,37 +56,47 @@ export default function RestaurantPage({ params }) {
   }, [viewerOpen, activeImage, zoomLevel, menuImages])
 
   const fetchRestaurant = async () => {
+    setLoading(true)
+    setError(null)
     try {
-
-
       const response = await fetch(`${backendUrl}/restaurants/${params.slug}`)
-      if (!response.ok) throw new Error('Not found')
+      if (!response.ok) throw new Error('Restaurant not found')
       const data = await response.json()
       setRestaurant(data)
 
       if (data.menu_images) {
-        const images = JSON.parse(data.menu_images).map(url => ({
-          url: url.startsWith('http') ? url : `${backendUrl}${url}`,  // ✅ activeUrl → backendUrl
-          name: 'Menu Page'
-        }))
-        setMenuImages(images)
+        try {
+          const parsed = JSON.parse(data.menu_images)
+          if (Array.isArray(parsed)) {
+            const images = parsed.map((url, idx) => ({
+              url: url.startsWith('http') ? url : `${backendUrl}${url}`,
+              name: `Menu Page ${idx + 1}`,
+            }))
+            setMenuImages(images)
+          }
+        } catch (e) {
+          console.error('Menu images parse error:', e)
+        }
       }
 
-      const ratingsRes = await fetch(`${backendUrl}/ratings/${data.id}`)  // ✅ activeUrl → backendUrl
+      const ratingsRes = await fetch(`${backendUrl}/ratings/${data.id}`)
       if (ratingsRes.ok) {
         const ratingsData = await ratingsRes.json()
         setRestaurantRatings(ratingsData)
       }
     } catch (err) {
       console.error(err)
+      setError('Unable to load this restaurant. Please check the URL or try again.')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleSubmitReview = async () => {
+  const handleSubmitReview = async (e) => {
+    e?.preventDefault()
     if (!rating || isSubmitting) return
     setIsSubmitting(true)
+    setReviewSuccess(false)
 
     try {
       const response = await fetch(`${backendUrl}/ratings/`, {
@@ -86,21 +104,25 @@ export default function RestaurantPage({ params }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           restaurant_id: restaurant.id,
-          user_name: userName || 'Anonymous',
+          user_name: userName.trim() || 'Food Court Diner',
           rating: rating,
-          comment: reviewText
-        })
+          comment: reviewText.trim(),
+        }),
       })
 
       if (response.ok) {
         setRating(0)
+        setHoverRating(0)
         setReviewText('')
         setUserName('')
+        setReviewSuccess(true)
+        setTimeout(() => setReviewSuccess(false), 5000)
         fetchRestaurant()
-        alert('Thank you for your rating!')
+      } else {
+        alert('Could not submit rating. Please try again.')
       }
     } catch (err) {
-      alert('Failed to submit rating')
+      alert('Network error while submitting rating.')
     } finally {
       setIsSubmitting(false)
     }
@@ -118,14 +140,12 @@ export default function RestaurantPage({ params }) {
     }
   }
 
-  // Reset Zoom & Pan
   const resetZoom = () => {
     setZoomLevel(1.0)
     setPanPosition({ x: 0, y: 0 })
     setIsDragging(false)
   }
 
-  // Navigation Handlers
   const handleNext = () => {
     if (menuImages.length === 0) return
     setActiveImage((prev) => (prev < menuImages.length - 1 ? prev + 1 : 0))
@@ -158,7 +178,6 @@ export default function RestaurantPage({ params }) {
     }
   }
 
-  // Pointer / Touch Panning Handlers
   const handlePointerDown = (clientX, clientY) => {
     if (zoomLevel > 1.0) {
       setIsDragging(true)
@@ -173,12 +192,11 @@ export default function RestaurantPage({ params }) {
     if (isDragging && zoomLevel > 1.0) {
       const newX = clientX - dragStart.x
       const newY = clientY - dragStart.y
-      // Bound limits according to zoom level
-      const maxPanX = (zoomLevel - 1) * 220
-      const maxPanY = (zoomLevel - 1) * 350
+      const maxPanX = (zoomLevel - 1) * 300
+      const maxPanY = (zoomLevel - 1) * 450
       setPanPosition({
         x: Math.min(Math.max(newX, -maxPanX), maxPanX),
-        y: Math.min(Math.max(newY, -maxPanY), maxPanY)
+        y: Math.min(Math.max(newY, -maxPanY), maxPanY),
       })
     } else if (!isDragging && zoomLevel <= 1.0) {
       setTouchEndX(clientX)
@@ -195,242 +213,533 @@ export default function RestaurantPage({ params }) {
     }
   }
 
-  if (loading) return (
-    <main className="min-h-screen bg-[#071722] flex flex-col items-center justify-center gap-3 text-[#f5ba4b] font-bold">
-      <div className="h-10 w-10 border-4 border-[#f5ba4b] border-t-transparent rounded-full animate-spin" />
-      <span>LOADING MENU...</span>
-    </main>
-  )
-
-  if (!restaurant) return <main className="min-h-screen bg-[#071722] p-5 text-[#edf5ff]">Restaurant not found.</main>
-
-  return (
-    <main className="min-h-screen overflow-x-hidden bg-[#071722] text-[#edf5ff]">
-      <div className="mx-auto min-h-screen max-w-[440px] px-4 pb-24 pt-4">
-        <header className="rounded-[28px] border border-[#1d2f43] bg-[#0a1724] p-4 shadow-[0_12px_30px_rgba(0,0,0,0.28)]">
-          <div className="flex items-center justify-between gap-3">
-            <Link href="/" className="text-[18px] text-[#dfe9f5] hover:text-[#f5ba4b]">←</Link>
-            <div className="flex items-center gap-2 text-center">
-              <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-[#2d3d52] bg-[#111e2d] text-sm font-bold text-[#f5ba4b]">
-                {restaurant.logo_url ? <img src={`${backendUrl}${restaurant.logo_url}`} alt="logo" className="h-full w-full object-cover" /> : restaurant.name.slice(0, 1)}
-              </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.18em] text-[#f4bd67]">{restaurant.cuisine}</p>
-                <h1 className="text-[18px] font-bold text-[#eef6ff]">{restaurant.name}</h1>
-              </div>
-            </div>
-            {restaurant.is_open ? (
-              <span className="rounded-full border border-[#1a4537] bg-[#102d27] px-2.5 py-1 text-[10px] font-bold text-[#73efb3]">Open</span>
-            ) : (
-              <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[10px] font-bold text-red-400">Closed</span>
-            )}
-          </div>
-
-          <div className="mt-4 rounded-2xl bg-[#142535] p-3">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.16em] text-[#efb95d]">Food Court</p>
-                <h2 className="mt-1 break-words text-[22px] font-bold text-[#f5f9ff]">{restaurant.tagline || 'Delicious Food'}</h2>
-              </div>
-              <span className="rounded-full border border-[#f1ba5d] bg-[#f4b851] px-2.5 py-1 text-[10px] font-bold text-[#1b1a17]">★ {restaurant.average_rating ? restaurant.average_rating.toFixed(1) : '0.0'}</span>
-            </div>
-            <p className="mt-2 text-[12px] text-[#a7b8c9]">
-              {restaurant.floor} • {restaurant.cuisine} • ⏰ {formatTime12(restaurant.opening_time || '11:00')} - {formatTime12(restaurant.closing_time || '23:00')}
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans">
+        <Navbar />
+        <main className="flex-1 flex flex-col items-center justify-center p-8">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-8 w-8 border-2 border-slate-800 border-t-transparent rounded-full animate-spin" />
+            <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+              Loading Menu & Outlet Details...
             </p>
           </div>
-        </header>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
-        {/* Menu Gallery Card */}
-        <section className="mt-5 rounded-[24px] border border-[#1d2f43] bg-[#0d1a27] p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="text-[11px] uppercase tracking-[0.16em] text-[#d9a95d]">Menu gallery</p>
-            <span className="text-[10px] font-mono text-[#9ab0c5]">
-              {menuImages.length ? `Page ${activeImage + 1} of ${menuImages.length}` : 'No images yet'}
-            </span>
-          </div>
-
-          {menuImages.length > 0 ? (
-            <>
-              {/* Swipable & Clickable Image Preview Container */}
-              <div
-                onTouchStart={(e) => handlePointerDown(e.touches[0].clientX, e.touches[0].clientY)}
-                onTouchMove={(e) => handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)}
-                onTouchEnd={handlePointerUp}
-                onClick={() => { setViewerOpen(true); resetZoom(); }}
-                className="group relative block w-full cursor-zoom-in overflow-hidden rounded-[20px] border border-[#2a3e53] bg-[#0a1724] p-2 transition-all hover:border-[#f5ba4b] select-none"
-              >
-                <img
-                  src={menuImages[activeImage]?.url}
-                  alt="menu"
-                  className="h-[360px] w-full rounded-[16px] object-contain sm:h-[440px] transition-transform duration-200 group-hover:scale-[1.02]"
-                />
-
-                {/* Left Arrow Button for Card */}
-                {menuImages.length > 1 && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/75 border border-[#2d3d52] text-white hover:border-[#f5ba4b] hover:text-[#f5ba4b] flex items-center justify-center shadow-lg transition-transform active:scale-90"
-                    title="Previous Page"
-                  >
-                    ←
-                  </button>
-                )}
-
-                {/* Right Arrow Button for Card */}
-                {menuImages.length > 1 && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-black/75 border border-[#2d3d52] text-white hover:border-[#f5ba4b] hover:text-[#f5ba4b] flex items-center justify-center shadow-lg transition-transform active:scale-90"
-                    title="Next Page"
-                  >
-                    →
-                  </button>
-                )}
-              </div>
-
-              {/* Thumbnails list */}
-              {menuImages.length > 1 && (
-                <div className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                  {menuImages.map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setActiveImage(index)}
-                      className={`h-16 w-12 shrink-0 overflow-hidden rounded-lg border-2 bg-black transition-all ${activeImage === index ? 'border-[#f5ba4b] scale-105' : 'border-[#2a3d4f] opacity-70 hover:opacity-100'
-                        }`}
-                    >
-                      <img src={image.url} alt="" className="h-full w-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="rounded-2xl border border-dashed border-[#2b3d50] bg-[#0d1824] p-8 text-center">
-              <p className="text-[16px] font-semibold text-[#edf5ff]">No menu images uploaded.</p>
-            </div>
-          )}
-        </section>
-
-        {/* Real Rating Form */}
-        <section className="mt-5 rounded-[24px] border border-[#1d2f43] bg-[#0d1a27] p-4">
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-[#f5ba4b]">Rate & Review</h3>
-            <span className="text-[10px] text-[#9ab0c5]">{restaurantRatings.length} total ratings</span>
-          </div>
-
-          <div className="space-y-4">
-            <input
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              placeholder="Your Name (Optional)"
-              className="w-full rounded-xl bg-[#111e2d] border border-[#23364c] p-3 text-xs text-white outline-none focus:border-[#f5ba4b]"
-            />
-
-            <div className="flex justify-center gap-2">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button key={star} onClick={() => setRating(star)} className={`text-[32px] transition-colors ${star <= rating ? 'text-[#f6c55b]' : 'text-[#4d5f75]'}`}>★</button>
-              ))}
-            </div>
-
-            <textarea
-              value={reviewText}
-              onChange={(e) => setReviewText(e.target.value)}
-              rows={3}
-              placeholder="Tell us about your experience..."
-              className="w-full resize-none rounded-xl border border-[#23364c] bg-[#111e2d] p-3 text-xs text-[#edf5ff] focus:border-[#f5ba4b] outline-none"
-            />
-
-            <button
-              onClick={handleSubmitReview}
-              disabled={!rating || isSubmitting}
-              className="w-full rounded-2xl bg-[#f5ba4b] py-4 text-xs font-bold text-[#171613] disabled:bg-[#5b6780] shadow-lg shadow-[#f5ba4b]/10 active:scale-95 transition-all"
+  if (error || !restaurant) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans">
+        <Navbar />
+        <main className="flex-1 max-w-4xl mx-auto px-4 py-20 text-center">
+          <div className="rounded-2xl border border-slate-200 bg-white p-10 shadow-sm">
+            <h1 className="text-2xl font-bold text-slate-900">Restaurant Not Found</h1>
+            <p className="mt-2 text-sm text-slate-600 max-w-md mx-auto">
+              {error || 'This outlet does not appear in the Mall of Sargodha directory.'}
+            </p>
+            <Link
+              href="/"
+              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-slate-800 transition-colors"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Rating'}
-            </button>
+              ← Return to Directory
+            </Link>
           </div>
-        </section>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
-        {/* Detailed Reviews List */}
-        <section className="mt-5 space-y-3">
-          <h3 className="px-2 text-[11px] font-bold uppercase tracking-widest text-[#5b6e82]">Customer Reviews</h3>
-          {restaurantRatings.length === 0 ? (
-            <p className="text-center py-10 text-xs text-[#5b6e82] italic">No reviews yet. Be the first to rate!</p>
-          ) : (
-            restaurantRatings.map((r) => (
-              <div key={r.id} className="rounded-2xl border border-[#1d2f43] bg-[#0d1a27] p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-xs text-[#f5f9ff]">{r.user_name}</span>
-                  <div className="flex text-[#f5ba4b] text-[10px]">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i}>{i < r.rating ? '★' : '☆'}</span>
+  const logoUrl =
+    restaurant.logo_url && !logoError
+      ? restaurant.logo_url.startsWith('http')
+        ? restaurant.logo_url
+        : `${backendUrl}${restaurant.logo_url}`
+      : null
+
+  const avgRating = restaurant.average_rating ? Number(restaurant.average_rating).toFixed(1) : null
+
+  return (
+    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] flex flex-col font-sans">
+      <Navbar />
+
+      <main className="flex-1 pb-16">
+        {/* Breadcrumb Navigation */}
+        <div className="border-b border-slate-200 bg-white">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between text-xs text-slate-500">
+            <div className="flex items-center gap-2">
+              <Link href="/" className="hover:text-slate-900 flex items-center gap-1 transition-colors">
+                <span>←</span>
+                <span>All Outlets</span>
+              </Link>
+              <span>/</span>
+              <span className="text-slate-400">Food Court (Floor 3)</span>
+              <span>/</span>
+              <span className="text-slate-900 font-medium truncate max-w-[200px]">{restaurant.name}</span>
+            </div>
+
+            {tableId && (
+              <div className="flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-slate-700 font-semibold text-[11px]">
+                <span>Table #{tableId}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Hero Outlet Header */}
+        <section className="border-b border-slate-200 bg-white py-8 sm:py-10">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              {/* Left Outlet Info */}
+              <div className="flex items-start sm:items-center gap-4">
+                <div className="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm">
+                  {logoUrl ? (
+                    <img
+                      src={logoUrl}
+                      alt={restaurant.name}
+                      onError={() => setLogoError(true)}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-2xl font-bold text-slate-800">
+                      {restaurant.name?.charAt(0) || 'M'}
+                    </span>
+                  )}
+                </div>
+
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                    {restaurant.is_open ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                        Open Now · Closes {formatTime12(restaurant.closing_time)}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-[11px] font-semibold text-rose-800">
+                        <span className="h-1.5 w-1.5 rounded-full bg-rose-600" />
+                        Closed · Opens {formatTime12(restaurant.opening_time)}
+                      </span>
+                    )}
+
+                    <span className="text-xs text-slate-500 font-medium">
+                      {restaurant.floor || 'Food Court (Floor 3)'}
+                    </span>
+                  </div>
+
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    {restaurant.name}
+                  </h1>
+
+                  {restaurant.tagline && (
+                    <p className="mt-1 text-xs sm:text-sm text-slate-600 italic">
+                      &ldquo;{restaurant.tagline}&rdquo;
+                    </p>
+                  )}
+
+                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                    {restaurant.cuisine?.split('/').map((c, i) => (
+                      <span
+                        key={i}
+                        className="rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700"
+                      >
+                        {c.trim()}
+                      </span>
                     ))}
                   </div>
                 </div>
-                <p className="text-[11px] text-[#a7b8c9] leading-relaxed">{r.comment || 'No comment provided.'}</p>
-                <p className="mt-2 text-[8px] uppercase text-[#5b6e82] tracking-tighter">
-                  {new Date(r.created_at).toLocaleDateString()}
-                </p>
               </div>
-            ))
-          )}
-        </section>
-      </div>
 
-      {/* FULLSCREEN INTERACTIVE LIGHTBOX MODAL */}
-      {viewerOpen && menuImages.length > 0 && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-between bg-black/95 backdrop-blur-xl p-3 sm:p-6 animate-in fade-in duration-200 select-none overflow-hidden">
-          {/* Lightbox Top Control Bar */}
-          <div className="flex items-center justify-between gap-2 z-30 bg-black/70 backdrop-blur-md px-4 py-3 rounded-2xl border border-[#1d2f43] shadow-2xl">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-[#f5ba4b]">{restaurant.name}</span>
-              <span className="text-[10px] text-[#8a9db0]">• Page {activeImage + 1} of {menuImages.length}</span>
+              {/* Right Rating Summary */}
+              <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 border-slate-200 pt-4 sm:pt-0 gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-base font-bold text-slate-900">
+                    <svg className="h-4 w-4 text-amber-500 fill-amber-500" viewBox="0 0 24 24">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                    <span>{avgRating ? avgRating : 'New'}</span>
+                  </div>
+                  <div className="text-left sm:text-right">
+                    <p className="text-xs font-semibold text-slate-900">
+                      {restaurantRatings.length} {restaurantRatings.length === 1 ? 'Review' : 'Reviews'}
+                    </p>
+                    <p className="text-[10px] text-slate-500">Verified Diners</p>
+                  </div>
+                </div>
+
+                <a
+                  href="#review-form"
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:text-slate-950 hover:border-slate-300 transition-colors shadow-subtle"
+                >
+                  Write a Review ↓
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Main 2-Column Layout */}
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Left Column: Menu Viewer */}
+            <div className="lg:col-span-8 space-y-6">
+              <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+                {/* Menu Header Toolbar */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-200">
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900">
+                      Digital Menu Gallery
+                    </h2>
+                    <p className="text-xs text-slate-500">
+                      High-resolution scan of the current printed food court menu.
+                    </p>
+                  </div>
+
+                  {menuImages.length > 0 && (
+                    <div className="flex items-center gap-2 self-start sm:self-auto">
+                      <span className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-mono font-medium text-slate-700">
+                        Page {activeImage + 1} of {menuImages.length}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setViewerOpen(true)
+                          resetZoom()
+                        }}
+                        className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-subtle"
+                        title="Open Fullscreen View"
+                      >
+                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="15 3 21 3 21 9" />
+                          <polyline points="9 21 3 21 3 15" />
+                          <line x1="21" y1="3" x2="14" y2="10" />
+                          <line x1="3" y1="21" x2="10" y2="14" />
+                        </svg>
+                        <span>Fullscreen</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Main Menu Preview Card */}
+                {menuImages.length > 0 ? (
+                  <div>
+                    <div
+                      onClick={() => {
+                        setViewerOpen(true)
+                        resetZoom()
+                      }}
+                      className="group relative flex min-h-[420px] sm:min-h-[520px] w-full cursor-zoom-in items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-3 transition-all hover:border-slate-300"
+                    >
+                      <img
+                        src={menuImages[activeImage]?.url}
+                        alt={`Menu page ${activeImage + 1}`}
+                        className="max-h-[70vh] w-auto max-w-full rounded-lg object-contain transition-transform duration-200 group-hover:scale-[1.01]"
+                      />
+
+                      {/* Floating hint pill */}
+                      <div className="pointer-events-none absolute bottom-5 rounded-full bg-slate-900/80 backdrop-blur-sm px-3.5 py-1 text-xs font-medium text-white shadow-md flex items-center gap-1.5">
+                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="11" cy="11" r="8" />
+                          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                          <line x1="11" y1="8" x2="11" y2="14" />
+                          <line x1="8" y1="11" x2="14" y2="11" />
+                        </svg>
+                        <span>Click to Zoom & Fullscreen</span>
+                      </div>
+
+                      {/* Navigation arrow buttons */}
+                      {menuImages.length > 1 && (
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handlePrev()
+                            }}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 border border-slate-200 text-slate-700 hover:text-slate-950 shadow-md transition-transform active:scale-90"
+                            aria-label="Previous Page"
+                          >
+                            ←
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleNext()
+                            }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 border border-slate-200 text-slate-700 hover:text-slate-950 shadow-md transition-transform active:scale-90"
+                            aria-label="Next Page"
+                          >
+                            →
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Thumbnail Strip */}
+                    {menuImages.length > 1 && (
+                      <div className="mt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-hidden">
+                        {menuImages.map((img, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => {
+                              setActiveImage(idx)
+                              resetZoom()
+                            }}
+                            className={`relative h-20 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
+                              activeImage === idx
+                                ? 'border-slate-900 ring-2 ring-slate-900/10 scale-105'
+                                : 'border-slate-200 opacity-60 hover:opacity-100'
+                            }`}
+                          >
+                            <img src={img.url} alt={`Thumb ${idx + 1}`} className="h-full w-full object-cover" />
+                            <span className="absolute bottom-0 inset-x-0 bg-slate-900/80 text-[9px] font-mono font-bold text-center text-white py-0.5">
+                              P.{idx + 1}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="my-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-200 text-slate-500 mb-3">
+                      <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                        <line x1="9" y1="3" x2="9" y2="21" />
+                      </svg>
+                    </div>
+                    <h3 className="text-base font-bold text-slate-900">Digital Menu In Preparation</h3>
+                    <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+                      The menu for {restaurant.name} is currently being scanned and uploaded. Please visit the counter directly on the 3rd Floor Food Court.
+                    </p>
+                    <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs text-slate-700 font-medium">
+                      <span>Outlet Location: {restaurant.floor || 'Food Court (Floor 3)'}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
+            {/* Right Column: Information & Reviews */}
+            <div className="lg:col-span-4 space-y-6">
+              {/* Outlet Details Card */}
+              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">
+                  Outlet Overview
+                </h3>
+                <dl className="space-y-3 text-xs">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <dt className="text-slate-500">Floor Location</dt>
+                    <dd className="font-semibold text-slate-900">{restaurant.floor || 'Floor 3 Food Court'}</dd>
+                  </div>
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <dt className="text-slate-500">Operating Hours</dt>
+                    <dd className="font-semibold text-slate-900">
+                      {formatTime12(restaurant.opening_time)} – {formatTime12(restaurant.closing_time)}
+                    </dd>
+                  </div>
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <dt className="text-slate-500">Order Format</dt>
+                    <dd className="font-semibold text-emerald-700">Dine-in & Takeaway</dd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <dt className="text-slate-500">Seating</dt>
+                    <dd className="font-semibold text-slate-900">Central Food Hall</dd>
+                  </div>
+                </dl>
+              </div>
+
+              {/* Review Submission Card */}
+              <div id="review-form" className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Rate This Restaurant
+                  </h3>
+                  <span className="text-[11px] text-slate-500">
+                    {restaurantRatings.length} {restaurantRatings.length === 1 ? 'rating' : 'ratings'}
+                  </span>
+                </div>
+
+                {reviewSuccess && (
+                  <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
+                    Your rating and review has been submitted successfully.
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmitReview} className="space-y-3">
+                  {/* Star Rating Picker */}
+                  <div className="flex flex-col items-center justify-center p-3 rounded-lg border border-slate-200 bg-slate-50">
+                    <span className="text-[11px] text-slate-600 mb-1.5 font-medium">Select Rating</span>
+                    <div className="flex gap-1.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          type="button"
+                          key={star}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          onClick={() => setRating(star)}
+                          className="p-1 transition-transform hover:scale-110 focus:outline-none"
+                        >
+                          <svg
+                            className={`h-6 w-6 ${
+                              star <= (hoverRating || rating)
+                                ? 'text-amber-500 fill-amber-500'
+                                : 'text-slate-300'
+                            }`}
+                            viewBox="0 0 24 24"
+                          >
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                          </svg>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <input
+                      type="text"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                      placeholder="Your Name (Optional)"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-slate-600 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <textarea
+                      value={reviewText}
+                      onChange={(e) => setReviewText(e.target.value)}
+                      rows={3}
+                      placeholder="Share your dining experience (food taste, portion, speed)..."
+                      className="w-full resize-none rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-900 placeholder-slate-400 focus:border-slate-600 focus:outline-none"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={!rating || isSubmitting}
+                    className="w-full rounded-lg bg-slate-900 py-2.5 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-subtle"
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Submit Review'}
+                  </button>
+                </form>
+              </div>
+
+              {/* Customer Reviews Feed */}
+              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">
+                  Customer Reviews
+                </h3>
+
+                {restaurantRatings.length === 0 ? (
+                  <div className="py-6 text-center">
+                    <p className="text-xs text-slate-500 italic">No ratings yet. Be the first to share your review!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                    {restaurantRatings.map((r, i) => (
+                      <div
+                        key={r.id || i}
+                        className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 space-y-1.5"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-slate-900">
+                            {r.user_name || 'Food Court Diner'}
+                          </span>
+                          <div className="flex text-amber-500">
+                            {[...Array(5)].map((_, idx) => (
+                              <svg
+                                key={idx}
+                                className={`h-3 w-3 ${
+                                  idx < r.rating ? 'fill-amber-500 text-amber-500' : 'text-slate-300'
+                                }`}
+                                viewBox="0 0 24 24"
+                              >
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                              </svg>
+                            ))}
+                          </div>
+                        </div>
+
+                        {r.comment && (
+                          <p className="text-xs text-slate-700 leading-relaxed">
+                            {r.comment}
+                          </p>
+                        )}
+
+                        <p className="text-[10px] text-slate-400">
+                          {r.created_at ? new Date(r.created_at).toLocaleDateString() : 'Recent Diner'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+
+      {/* FULLSCREEN LIGHTBOX MODAL */}
+      {viewerOpen && menuImages.length > 0 && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-between bg-slate-950/90 backdrop-blur-md p-3 sm:p-6 animate-in fade-in duration-150 select-none overflow-hidden">
+          {/* Lightbox Top Control Bar */}
+          <div className="flex items-center justify-between gap-2 z-30 bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-md">
             <div className="flex items-center gap-2">
-              {/* Zoom Out Button */}
+              <span className="text-xs font-bold text-slate-900">{restaurant.name}</span>
+              <span className="text-[11px] text-slate-500">
+                · Page {activeImage + 1} of {menuImages.length}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={handleZoomOut}
                 disabled={zoomLevel <= 1.0}
-                className="h-9 w-9 rounded-xl border border-[#2d3d52] bg-[#111e2d] text-sm font-bold text-white hover:border-[#f5ba4b] disabled:opacity-30 flex items-center justify-center transition-all"
+                className="h-8 w-8 rounded-lg border border-slate-200 bg-white text-sm font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-30 flex items-center justify-center transition-all"
                 title="Zoom Out"
               >
-                🔍-
+                −
               </button>
 
-              {/* Zoom Level Indicator / Reset */}
               <button
                 onClick={resetZoom}
-                className="px-2.5 py-1.5 rounded-xl border border-[#2d3d52] bg-[#111e2d] text-[11px] font-mono font-bold text-[#f5ba4b] hover:border-[#f5ba4b] transition-all"
+                className="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 text-[11px] font-mono font-semibold text-slate-700 hover:bg-slate-100 transition-all"
                 title="Reset Zoom"
               >
                 {Math.round(zoomLevel * 100)}%
               </button>
 
-              {/* Zoom In Button */}
               <button
                 onClick={handleZoomIn}
                 disabled={zoomLevel >= 3.0}
-                className="h-9 w-9 rounded-xl border border-[#2d3d52] bg-[#111e2d] text-sm font-bold text-white hover:border-[#f5ba4b] disabled:opacity-30 flex items-center justify-center transition-all"
+                className="h-8 w-8 rounded-lg border border-slate-200 bg-white text-sm font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-30 flex items-center justify-center transition-all"
                 title="Zoom In"
               >
-                🔍+
+                +
               </button>
 
-              {/* Close Button */}
               <button
-                onClick={() => { setViewerOpen(false); resetZoom(); }}
-                className="h-9 w-9 rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 font-bold hover:bg-red-500/30 flex items-center justify-center ml-2 transition-all"
-                title="Close Lightbox"
+                onClick={() => {
+                  setViewerOpen(false)
+                  resetZoom()
+                }}
+                className="h-8 w-8 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 font-bold hover:bg-slate-200 flex items-center justify-center ml-2 transition-all"
+                title="Close"
               >
                 ✕
               </button>
             </div>
           </div>
 
-          {/* Lightbox Main Image, Touch Swipe & Touch/Mouse Drag Panning Area */}
+          {/* Lightbox Image & Gesture Area */}
           <div
-            className={`relative flex-1 flex items-center justify-center my-2 overflow-hidden ${zoomLevel > 1.0 ? 'cursor-grab active:cursor-grabbing' : ''
-              }`}
+            className={`relative flex-1 flex items-center justify-center my-2 overflow-hidden ${
+              zoomLevel > 1.0 ? 'cursor-grab active:cursor-grabbing' : ''
+            }`}
             onTouchStart={(e) => handlePointerDown(e.touches[0].clientX, e.touches[0].clientY)}
             onTouchMove={(e) => handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)}
             onTouchEnd={handlePointerUp}
@@ -440,18 +749,16 @@ export default function RestaurantPage({ params }) {
             onMouseLeave={handlePointerUp}
             onDoubleClick={toggleDoubleTapZoom}
           >
-            {/* Previous Page Arrow Button (ONLY SHOW WHEN NOT ZOOMED IN TO PREVENT TEXT OVERLAP) */}
             {menuImages.length > 1 && zoomLevel <= 1.0 && (
               <button
                 onClick={handlePrev}
-                className="absolute left-3 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full bg-black/80 border border-[#2d3d52] text-xl text-white hover:border-[#f5ba4b] hover:text-[#f5ba4b] flex items-center justify-center shadow-2xl transition-transform active:scale-90"
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-white/90 border border-slate-200 text-lg text-slate-800 hover:bg-white flex items-center justify-center shadow-lg transition-transform active:scale-95"
                 title="Previous Page"
               >
                 ←
               </button>
             )}
 
-            {/* Main Interactive Zoomable & Pannable Menu Image */}
             <div className="relative max-h-full max-w-full flex items-center justify-center">
               <img
                 src={menuImages[activeImage]?.url}
@@ -460,15 +767,14 @@ export default function RestaurantPage({ params }) {
                   transform: `translate(${panPosition.x}px, ${panPosition.y}px) scale(${zoomLevel})`,
                   transition: isDragging ? 'none' : 'transform 0.2s ease-out',
                 }}
-                className="max-h-[75vh] max-w-full object-contain rounded-xl shadow-2xl origin-center"
+                className="max-h-[75vh] max-w-full object-contain rounded-lg shadow-2xl origin-center"
               />
             </div>
 
-            {/* Next Page Arrow Button (ONLY SHOW WHEN NOT ZOOMED IN TO PREVENT TEXT OVERLAP) */}
             {menuImages.length > 1 && zoomLevel <= 1.0 && (
               <button
                 onClick={handleNext}
-                className="absolute right-3 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full bg-black/80 border border-[#2d3d52] text-xl text-white hover:border-[#f5ba4b] hover:text-[#f5ba4b] flex items-center justify-center shadow-2xl transition-transform active:scale-90"
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-white/90 border border-slate-200 text-lg text-slate-800 hover:bg-white flex items-center justify-center shadow-lg transition-transform active:scale-95"
                 title="Next Page"
               >
                 →
@@ -477,25 +783,31 @@ export default function RestaurantPage({ params }) {
           </div>
 
           {/* Lightbox Bottom Controls & Thumbnail Strip */}
-          <div className="z-30 bg-black/70 backdrop-blur-md p-3 rounded-2xl border border-[#1d2f43] flex flex-col items-center gap-2 shadow-2xl">
-            <p className="text-[10px] text-[#8a9db0] tracking-tight">
-              💡 {zoomLevel > 1.0 ? (
-                <span className="text-[#f5ba4b]">Drag/Pan with finger to move around zoomed image</span>
+          <div className="z-30 bg-white p-3 rounded-xl border border-slate-200 flex flex-col items-center gap-2 shadow-lg">
+            <p className="text-[11px] text-slate-600">
+              {zoomLevel > 1.0 ? (
+                <span>Drag to pan across the magnified menu</span>
               ) : (
-                <>
-                  <span className="text-[#f5ba4b]">Swipe left/right</span> or use arrows to switch pages • <span className="text-[#f5ba4b]">Double-tap</span> to zoom
-                </>
+                <span>
+                  Swipe or use arrows to change pages · <span className="font-semibold text-slate-900">Double-click</span> to zoom
+                </span>
               )}
             </p>
 
             {menuImages.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto max-w-full py-1 scrollbar-hide">
+              <div className="flex gap-2 overflow-x-auto max-w-full py-1 scrollbar-hidden">
                 {menuImages.map((img, idx) => (
                   <button
                     key={idx}
-                    onClick={() => { setActiveImage(idx); resetZoom(); }}
-                    className={`h-12 w-10 shrink-0 overflow-hidden rounded-lg border-2 bg-black transition-all ${activeImage === idx ? 'border-[#f5ba4b] scale-110 shadow-md shadow-[#f5ba4b]/30' : 'border-[#2d3d52] opacity-50'
-                      }`}
+                    onClick={() => {
+                      setActiveImage(idx)
+                      resetZoom()
+                    }}
+                    className={`h-12 w-10 shrink-0 overflow-hidden rounded-md border-2 bg-slate-100 transition-all ${
+                      activeImage === idx
+                        ? 'border-slate-900 scale-105 shadow-sm'
+                        : 'border-slate-200 opacity-60 hover:opacity-100'
+                    }`}
                   >
                     <img src={img.url} alt="" className="h-full w-full object-cover" />
                   </button>
@@ -505,6 +817,6 @@ export default function RestaurantPage({ params }) {
           </div>
         </div>
       )}
-    </main>
+    </div>
   )
 }

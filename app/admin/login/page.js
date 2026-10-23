@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function AdminLogin() {
   const [username, setUsername] = useState('')
@@ -11,8 +12,9 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  // ✅ Environment variable se backend URL lo, hostname-detection ki zaroorat nahi
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mall-of-sargodha-backend-dl1yin-7b34d3-187-77-180-230.sslip.io'
+  const backendUrl =
+    process.env.NEXT_PUBLIC_API_URL ||
+    'https://mall-of-sargodha-backend-dl1yin-7b34d3-187-77-180-230.sslip.io'
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -20,7 +22,7 @@ export default function AdminLogin() {
     setError('')
 
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 15000) // Render free tier cold start ke liye 15s
+    const timeoutId = setTimeout(() => controller.abort(), 15000)
 
     try {
       const params = new URLSearchParams()
@@ -53,101 +55,97 @@ export default function AdminLogin() {
     } catch (err) {
       clearTimeout(timeoutId)
       if (err.name === 'AbortError') {
-        setError(`Connection Timeout. Backend at ${backendUrl} is not responding.`)
+        setError(`Connection timeout. Backend at ${backendUrl} is not responding.`)
       } else {
-        setError(`${err.message} (Target: ${backendUrl})`)
+        setError(err.message || 'Authentication error')
       }
     } finally {
       setLoading(false)
     }
   }
+
   return (
-    <main className="relative flex min-h-screen items-center justify-center bg-[#08121e] bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(245,186,75,0.15),rgba(255,255,255,0))] p-4 text-[#e6edf8] overflow-hidden">
-      {/* Decorative ambient background blur lights */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#f5ba4b]/10 rounded-full blur-[120px] pointer-events-none" />
+    <main className="min-h-screen bg-[#f8fafc] flex flex-col justify-between p-4 sm:p-6 text-slate-900 font-sans">
+      <div className="w-full max-w-7xl mx-auto flex items-center justify-between py-2">
+        <Link href="/" className="text-xs font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
+          <span>←</span>
+          <span>Back to Food Hub Directory</span>
+        </Link>
+      </div>
 
-      <div className="relative w-full max-w-[420px] rounded-[36px] border border-[#1e2e40] bg-[#0f1d2c]/90 backdrop-blur-2xl p-8 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] transition-all duration-300">
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#f5ba4b] text-3xl shadow-[0_0_30px_rgba(245,186,75,0.25)] border border-[#ffdb8b]/30">
-            👑
-          </div>
-          <h1 className="text-2xl font-black tracking-tight text-white">MOS Admin</h1>
-          <p className="mt-1.5 text-xs text-[#9fb0c0] font-medium">Mall Directory Workspace Portal</p>
-          <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#1e2e40] bg-[#08121e]/80 px-3 py-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[10px] font-mono text-[#8a9db0] tracking-tight">API: {backendUrl}</span>
-          </div>
-        </div>
-
-        {error && (
-          <div className="mb-6 flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-300 animate-in fade-in duration-200">
-            <span className="text-base mt-0.5">⚠️</span>
-            <div className="flex-1">
-              <p className="font-bold text-red-200">Connection Error</p>
-              <p className="mt-0.5 text-[#f87171]/90 leading-relaxed">{error}</p>
+      <div className="w-full max-w-sm mx-auto my-auto">
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="text-center mb-6">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm">
+              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
             </div>
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} className="space-y-5">
-          <div>
-            <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#f5ba4b]">Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className={`w-full rounded-2xl border bg-[#08121e] px-4 py-3.5 text-sm text-[#eaf3ff] outline-none transition-all duration-200 ${error
-                  ? 'border-red-500/50 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                  : 'border-[#1e2e40] focus:border-[#f5ba4b] focus:ring-2 focus:ring-[#f5ba4b]/20'
-                }`}
-              placeholder="e.g. admin"
-              required
-            />
+            <h1 className="text-xl font-bold text-slate-900">Admin Portal</h1>
+            <p className="mt-1 text-xs text-slate-500">Mall of Sargodha Food Hub</p>
           </div>
 
-          <div>
-            <label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#f5ba4b]">Password</label>
-            <div className="relative w-full">
+          {error && (
+            <div className="mb-5 rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
+              <p className="font-semibold">Authentication failed</p>
+              <p className="mt-0.5 text-rose-700">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Username</label>
               <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={`w-full rounded-2xl border bg-[#08121e] pl-4 pr-12 py-3.5 text-sm text-[#eaf3ff] outline-none transition-all duration-200 ${error
-                    ? 'border-red-500/50 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                    : 'border-[#1e2e40] focus:border-[#f5ba4b] focus:ring-2 focus:ring-[#f5ba4b]/20'
-                  }`}
-                placeholder="••••••••"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:border-slate-800 focus:outline-none"
+                placeholder="Enter username"
                 required
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-[#8a9db0] hover:text-[#f5ba4b] focus:outline-none transition-colors"
-              >
-                {showPassword ? '🙈' : '👁️'}
-              </button>
             </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:border-slate-800 focus:outline-none pr-10"
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500 hover:text-slate-800"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-slate-900 py-2.5 text-xs font-semibold text-white hover:bg-slate-800 transition-colors shadow-sm disabled:opacity-50 mt-2"
+            >
+              {loading ? 'Authenticating...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="mt-6 pt-4 border-t border-slate-100 text-center">
+            <span className="text-[11px] text-slate-400">
+              Authorized Outlet & Mall Operations Only
+            </span>
           </div>
+        </div>
+      </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-2xl bg-[#f5ba4b] py-4 text-xs font-bold uppercase tracking-wider text-[#121110] transition-all duration-200 hover:bg-[#f6c360] hover:shadow-[0_0_25px_rgba(245,186,75,0.35)] active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-[#f5ba4b]/15 flex justify-center items-center gap-2 mt-2"
-          >
-            {loading ? (
-              <>
-                <span className="h-4 w-4 border-2 border-[#121110] border-t-transparent rounded-full animate-spin" />
-                <span>Authenticating...</span>
-              </>
-            ) : (
-              'Sign In To Dashboard →'
-            )}
-          </button>
-        </form>
-
-        <p className="mt-8 text-center text-[11px] font-medium text-[#5b6e82]">
-          MOS Food Hub • Secure Workspace
-        </p>
+      <div className="text-center py-4 text-xs text-slate-400">
+        © {new Date().getFullYear()} Mall of Sargodha Food Hub
       </div>
     </main>
   )

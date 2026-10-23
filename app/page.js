@@ -1,14 +1,25 @@
+
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
+import Navbar from '../components/Navbar'
+import RestaurantCard from '../components/RestaurantCard'
+import AmenitiesSection from '../components/AmenitiesSection'
+import MallInfoSection from '../components/MallInfoSection'
+import Footer from '../components/Footer'
 
 export default function Home() {
   const [search, setSearch] = useState('')
   const [activeCuisine, setActiveCuisine] = useState('All')
+  const [onlyOpen, setOnlyOpen] = useState(false)
+  const [sortBy, setSortBy] = useState('default')
   const [restaurantList, setRestaurantList] = useState([])
   const [loading, setLoading] = useState(true)
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mall-of-sargodha-backend-dl1yin-7b34d3-187-77-180-230.sslip.io'
+  const [error, setError] = useState(null)
+
+  const backendUrl =
+    process.env.NEXT_PUBLIC_API_URL ||
+    'https://mall-of-sargodha-backend-dl1yin-7b34d3-187-77-180-230.sslip.io'
 
   const normalize = (value = '') =>
     value
@@ -18,279 +29,307 @@ export default function Home() {
       .trim()
 
   useEffect(() => {
-
     fetchRestaurants()
   }, [])
 
   const fetchRestaurants = async () => {
+    setLoading(true)
+    setError(null)
     try {
       const response = await fetch(`${backendUrl}/restaurants/`)
-      if (!response.ok) throw new Error('Failed to load')
+      if (!response.ok) throw new Error('Failed to load restaurants')
       const data = await response.json()
       setRestaurantList(data)
     } catch (err) {
       console.error('Data sync error:', err)
+      setError('Could not connect to the food court server. Showing available cached outlets.')
     } finally {
       setLoading(false)
     }
   }
 
+  // Cuisines list calculated from data
+  const cuisines = useMemo(() => {
+    const set = new Set()
+    restaurantList.forEach((r) => {
+      if (r.cuisine) {
+        r.cuisine.split('/').forEach((c) => {
+          const trimmed = c.trim()
+          if (trimmed) set.add(trimmed)
+        })
+      }
+    })
+    return ['All', ...Array.from(set)]
+  }, [restaurantList])
+
+  // Filtered and sorted restaurant list
   const filtered = useMemo(() => {
     const query = normalize(search)
 
-    return restaurantList.filter((r) => {
-      const combinedSearchText = normalize([
-        r.name,
-        r.cuisine,
-        r.floor,
-        r.tagline
-      ].join(' '))
+    let results = restaurantList.filter((r) => {
+      const combinedSearchText = normalize(
+        [r.name, r.cuisine, r.floor, r.tagline].join(' ')
+      )
 
       const matchesSearch = !query || combinedSearchText.includes(query)
-      const matchesCuisine = activeCuisine === 'All' || normalize(r.cuisine).includes(normalize(activeCuisine))
+      const matchesCuisine =
+        activeCuisine === 'All' ||
+        normalize(r.cuisine || '').includes(normalize(activeCuisine))
+      const matchesOpen = !onlyOpen || r.is_open
 
-      return matchesSearch && matchesCuisine
+      return matchesSearch && matchesCuisine && matchesOpen
     })
-  }, [activeCuisine, restaurantList, search])
 
-  const cuisines = ['All', ...new Set(restaurantList.flatMap((r) => r.cuisine.split(' / ')))]
+    if (sortBy === 'rating') {
+      results = [...results].sort(
+        (a, b) => (b.average_rating || 0) - (a.average_rating || 0)
+      )
+    } else if (sortBy === 'name') {
+      results = [...results].sort((a, b) => a.name.localeCompare(b.name))
+    }
 
-  const hasActiveFilters = search !== '' || activeCuisine !== 'All'
+    return results
+  }, [activeCuisine, onlyOpen, restaurantList, search, sortBy])
+
+  const openCount = useMemo(() => {
+    return restaurantList.filter((r) => r.is_open).length
+  }, [restaurantList])
 
   const clearFilters = () => {
     setSearch('')
     setActiveCuisine('All')
+    setOnlyOpen(false)
+    setSortBy('default')
   }
-
-  const getCoverImage = (restaurant) => {
-    if (restaurant.menu_images) {
-      try {
-        const parsed = JSON.parse(restaurant.menu_images)
-        if (parsed && parsed.length > 0) {
-          const url = parsed[0]
-          return url.startsWith('http') ? url : `${backendUrl}${url}`
-        }
-      } catch (e) {}
-    }
-    if (restaurant.logo_url) {
-      return restaurant.logo_url.startsWith('http') ? restaurant.logo_url : `${backendUrl}${restaurant.logo_url}`
-    }
-    return null
-  }
-
-  const formatTime12 = (timeStr = '11:00') => {
-    try {
-      const [h, m] = timeStr.split(':').map(Number)
-      const period = h >= 12 ? 'PM' : 'AM'
-      const h12 = h % 12 === 0 ? 12 : h % 12
-      const mStr = m < 10 ? `0${m}` : m
-      return `${h12}:${mStr} ${period}`
-    } catch (e) {
-      return timeStr
-    }
-  }
-
-  if (loading) return (
-    <main className="min-h-screen bg-[#08121e] text-[#e6edf8] flex flex-col items-center justify-center gap-3">
-      <div className="h-10 w-10 border-4 border-[#f5ba4b] border-t-transparent rounded-full animate-spin" />
-      <p className="font-bold text-xs uppercase tracking-widest text-[#f5ba4b] animate-pulse">Syncing Food Directory...</p>
-    </main>
-  )
 
   return (
-    <main className="min-h-screen bg-[#08121e] text-[#e6edf8]">
-      {/* Navigation Header */}
-      <nav className="border-b border-[#1e2e40] bg-[#0b1722]/90 backdrop-blur-xl sticky top-0 z-40 px-4 sm:px-8 py-3.5 shadow-lg">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <span className="text-2xl">👑</span>
-            <div>
-              <h1 className="text-base font-black tracking-tight text-white leading-tight">MOS Food Hub</h1>
-              <p className="text-[10px] text-[#8a9db0] font-medium">Mall of Sargodha • Food Court</p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] flex flex-col font-sans">
+      <Navbar />
 
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-bold uppercase text-emerald-400">Directory Live</span>
-            </div>
-            <Link
-              href="/admin"
-              className="rounded-2xl border border-[#21354a] bg-[#0f1d2c] px-3.5 py-2 text-xs font-bold text-[#f5ba4b] hover:border-[#f5ba4b] transition-all shadow-md"
-            >
-              🔑 Admin
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1">
         {/* Top Hero Section */}
-        <section className="mb-8 rounded-[32px] border border-[#1e2e40] bg-[#0f1d2c] p-6 sm:p-8 relative overflow-hidden shadow-2xl">
-          <div className="absolute -right-12 -top-12 w-48 h-48 bg-[#f5ba4b]/10 rounded-full blur-2xl pointer-events-none" />
-          <div className="relative z-10 max-w-2xl">
-            <span className="inline-block rounded-full bg-[#f5ba4b]/10 border border-[#f5ba4b]/30 px-3.5 py-1 text-[10px] font-bold uppercase tracking-widest text-[#f5ba4b] mb-3">
-              Official Food Court Directory
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">Find Your Favorite Food & Menus</h2>
-            <p className="mt-2 text-xs sm:text-sm text-[#8a9db0] leading-relaxed">
-              Browse complete digital menus, actual prices, and floor locations across Mall of Sargodha restaurants.
-            </p>
+        <section className="border-b border-slate-200 bg-white pt-10 pb-12 sm:pt-14 sm:pb-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+              {/* Left headline */}
+              <div className="max-w-2xl">
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1 text-xs font-semibold text-slate-700 mb-4">
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-700" />
+                  <span>Mall of Sargodha · Floor 3 Food Court</span>
+                </div>
 
-            {/* Live Search Input */}
-            <div className="mt-6 flex items-center gap-3 rounded-2xl border border-[#1e2e40] bg-[#08121e] px-4 py-3.5 text-sm text-[#8a9db0] focus-within:border-[#f5ba4b] focus-within:ring-2 focus-within:ring-[#f5ba4b]/20 transition-all shadow-inner">
-              <span className="text-base text-[#f5ba4b]">🔍</span>
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by restaurant name, pizza, burger, biryani, floor..."
-                className="w-full border-0 bg-transparent text-sm text-[#e6edf8] focus:outline-none placeholder-[#5b6e82]"
-              />
-              {search && (
-                <button onClick={() => setSearch('')} className="text-xs font-bold text-[#8a9db0] hover:text-white">✕</button>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 leading-[1.15]">
+                  Digital Menus & Restaurant Directory
+                </h1>
+
+                <p className="mt-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                  Browse complete printed menus, actual prices, opening hours, and floor locations for all fast food, pizza, and dining outlets.
+                </p>
+
+                {/* Key Quick Stats */}
+                <div className="mt-6 flex flex-wrap items-center gap-3 text-xs">
+                  <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-subtle">
+                    <span className="font-bold text-slate-900">{restaurantList.length}</span>
+                    <span>Total Outlets</span>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-subtle">
+                    <span className="h-2 w-2 rounded-full bg-emerald-600" />
+                    <span className="font-bold text-emerald-800">{openCount}</span>
+                    <span>Open Now</span>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-subtle">
+                    <svg className="h-3.5 w-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <span>11:00 AM – 12:00 AM</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Search Box Card */}
+              <div className="w-full lg:max-w-md">
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-5 shadow-sm">
+                  <label htmlFor="search-input" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                    Search Food & Restaurants
+                  </label>
+                  <div className="relative flex items-center">
+                    <div className="pointer-events-none absolute left-3.5 flex items-center text-slate-400">
+                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      </svg>
+                    </div>
+                    <input
+                      id="search-input"
+                      type="text"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Search pizza, burger, broast, restaurant..."
+                      className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-10 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-600 transition-all"
+                    />
+                    {search && (
+                      <button
+                        onClick={() => setSearch('')}
+                        className="absolute right-3 rounded-full p-1 text-slate-400 hover:text-slate-700"
+                        aria-label="Clear search"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Popular quick tags */}
+                  <div className="mt-3.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+                    <span className="text-[11px]">Popular:</span>
+                    {['Pizza', 'Broast', 'Fast Food'].map((tag) => (
+                      <button
+                        key={tag}
+                        onClick={() => setSearch(tag)}
+                        className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-700 hover:border-slate-400 transition-colors"
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Directory & Content Section */}
+        <section id="directory" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+          {/* Controls Bar: Category Pills + Filters */}
+          <div className="space-y-4 mb-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              {/* Cuisine category pills */}
+              <div className="scrollbar-hidden flex items-center gap-2 overflow-x-auto pb-1">
+                {cuisines.map((cuisine) => (
+                  <button
+                    key={cuisine}
+                    onClick={() => setActiveCuisine(cuisine)}
+                    className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+                      activeCuisine === cuisine
+                        ? 'bg-slate-900 text-white shadow-sm'
+                        : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    {cuisine}
+                  </button>
+                ))}
+              </div>
+
+              {/* Toggles and Sorting */}
+              <div className="flex items-center gap-3 self-end md:self-auto shrink-0 text-xs">
+                {/* Open now toggle */}
+                <button
+                  onClick={() => setOnlyOpen(!onlyOpen)}
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 font-medium transition-all ${
+                    onlyOpen
+                      ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                  }`}
+                >
+                  <span className={`h-2 w-2 rounded-full ${onlyOpen ? 'bg-emerald-600' : 'bg-slate-400'}`} />
+                  <span>Open Now</span>
+                </button>
+
+                {/* Sort selector */}
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-slate-700 focus:outline-none focus:border-slate-400 font-medium"
+                >
+                  <option value="default">Default Order</option>
+                  <option value="rating">Highest Rated</option>
+                  <option value="name">Name (A-Z)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Results Counter / Active Filters Indicator */}
+            <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-200">
+              <p>
+                Showing <strong className="text-slate-900 font-semibold">{filtered.length}</strong> {filtered.length === 1 ? 'outlet' : 'outlets'}
+                {activeCuisine !== 'All' && <span> in <span className="text-slate-900 font-medium">{activeCuisine}</span></span>}
+                {search && <span> matching &ldquo;<span className="text-slate-900 font-medium">{search}</span>&rdquo;</span>}
+              </p>
+
+              {(search || activeCuisine !== 'All' || onlyOpen || sortBy !== 'default') && (
+                <button
+                  onClick={clearFilters}
+                  className="text-slate-900 hover:underline font-semibold"
+                >
+                  Reset all filters
+                </button>
               )}
             </div>
           </div>
-        </section>
 
-        {/* Category Filter Pills Bar */}
-        <section className="mb-8 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-[#f5ba4b]">Categories</p>
-          </div>
-
-          {/* Cuisine Tags */}
-          <div className="scrollbar-hidden flex gap-2 overflow-x-auto pb-1">
-            {cuisines.map((cuisine) => (
-              <button
-                key={cuisine}
-                onClick={() => setActiveCuisine(cuisine)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold transition-all ${
-                  activeCuisine === cuisine
-                    ? 'border-[#f5ba4b] bg-[#f5ba4b] text-[#121110] shadow-lg shadow-[#f5ba4b]/20 scale-105'
-                    : 'border-[#1e2e40] bg-[#0f1d2c] text-[#8a9db0] hover:text-white hover:border-[#f5ba4b]/40'
-                }`}
-              >
-                <span>🍽️</span>
-                <span>{cuisine}</span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* Snabb-Style Visual Food Cover Card Grid */}
-        <section>
-          <div className="mb-5 flex items-center justify-between border-b border-[#1e2e40] pb-3">
-            <h3 className="text-xl font-black text-white">Outlets Directory</h3>
-            <span className="rounded-full border border-[#1e2e40] bg-[#0f1d2c] px-3.5 py-1 text-xs font-mono font-bold text-[#f5ba4b]">
-              {filtered.length} Restaurants
-            </span>
-          </div>
-
-          {/* Fully Mobile-Responsive 1-to-4 Column Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filtered.map((restaurant) => {
-              const coverUrl = getCoverImage(restaurant)
-              return (
-                <Link
-                  key={restaurant.slug}
-                  href={`/restaurant/${restaurant.slug}`}
-                  className="group block rounded-[28px] border border-[#1e2e40] bg-[#0f1d2c] overflow-hidden shadow-xl transition-all duration-300 hover:-translate-y-2 hover:border-[#f5ba4b]/60 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)] flex flex-col justify-between"
+          {/* Loading Skeletons */}
+          {loading && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className="animate-pulse rounded-xl border border-slate-200 bg-white overflow-hidden"
                 >
-                  <div>
-                    {/* Visual Cover Image Banner */}
-                    <div className="h-48 w-full relative overflow-hidden bg-[#142637]">
-                      {coverUrl ? (
-                        <img
-                          src={coverUrl}
-                          alt={restaurant.name}
-                          className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-                            !restaurant.is_open ? 'brightness-50' : ''
-                          }`}
-                        />
-                      ) : (
-                        <div className="h-full w-full bg-gradient-to-br from-[#142637] to-[#08121e] flex items-center justify-center text-4xl font-black text-[#f5ba4b]/30">
-                          🍔
-                        </div>
-                      )}
-
-                      {/* Snabb-Style Center Overlay for Closed Restaurants */}
-                      {!restaurant.is_open && (
-                        <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center p-2 text-center">
-                          <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide bg-black/60 px-3 py-1 rounded-full border border-white/20 shadow-md">
-                            Opens {formatTime12(restaurant.opening_time)}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Floating Star Rating Overlay */}
-                      <div className="absolute top-3 right-3 rounded-full bg-black/75 backdrop-blur-md border border-white/10 px-2.5 py-1 text-xs font-bold text-[#f5ba4b] flex items-center gap-1 shadow-lg z-10">
-                        <span>★</span>
-                        <span>{restaurant.average_rating ? restaurant.average_rating.toFixed(1) : 'New'}</span>
-                        <span className="text-[9px] text-[#8a9db0]">({restaurant.ratings_count})</span>
-                      </div>
-
-                      {/* Floating Shop Logo Avatar Overlay */}
-                      <div className="absolute -bottom-2 left-4 h-12 w-12 rounded-2xl bg-[#08121e] border-2 border-[#f5ba4b] overflow-hidden shadow-xl flex items-center justify-center text-lg font-bold text-[#f5ba4b] z-10">
-                        {restaurant.logo_url ? (
-                          <img src={`${backendUrl}${restaurant.logo_url}`} alt={restaurant.name} className="h-full w-full object-cover" />
-                        ) : (
-                          restaurant.name[0]
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Card Content Details */}
-                    <div className="p-5 pt-5">
-                      <h4 className="text-lg font-bold text-white group-hover:text-[#f5ba4b] transition-colors truncate">
-                        {restaurant.name}
-                      </h4>
-
-                      <p className="mt-1 text-xs text-[#8a9db0] font-semibold truncate">
-                        {restaurant.floor} • {restaurant.cuisine}
-                      </p>
-
-                      {restaurant.tagline && (
-                        <p className="mt-2 text-xs italic text-[#f5ba4b]/85 line-clamp-1 font-medium">
-                          "{restaurant.tagline}"
-                        </p>
-                      )}
-                    </div>
+                  <div className="h-44 bg-slate-100" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-4 w-3/4 bg-slate-200 rounded" />
+                    <div className="h-3 w-1/2 bg-slate-100 rounded" />
+                    <div className="h-3 w-full bg-slate-100 rounded" />
                   </div>
-
-                  {/* Card Bottom Status & Action Bar */}
-                  <div className="px-5 pb-5 pt-2 border-t border-[#1e2e40]/60 flex items-center justify-between">
-                    {restaurant.is_open ? (
-                      <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        Open now • Closes {formatTime12(restaurant.closing_time)}
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-bold text-red-400 flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
-                        Closed now
-                      </span>
-                    )}
-
-                    <span className="text-xs font-bold text-[#f5ba4b] flex items-center gap-1 group-hover:translate-x-1.5 transition-transform">
-                      <span>View Menu</span>
-                      <span>→</span>
-                    </span>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-
-          {filtered.length === 0 && (
-            <div className="mt-8 rounded-[36px] border border-dashed border-[#1e2e40] bg-[#0f1d2c] p-12 text-center">
-              <span className="text-4xl block mb-2">🔍</span>
-              <p className="text-[#8a9db0] text-sm font-medium">No restaurants found matching your search.</p>
+                </div>
+              ))}
             </div>
           )}
+
+          {/* Empty State */}
+          {!loading && filtered.length === 0 && (
+            <div className="my-8 rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-500 mb-4">
+                <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </div>
+              <h3 className="text-base font-bold text-slate-900">No Outlets Found</h3>
+              <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+                We couldn&apos;t find any outlets matching your search. Try another keyword or reset filters.
+              </p>
+              <button
+                onClick={clearFilters}
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800 transition-colors"
+              >
+                Clear Search & Filters
+              </button>
+            </div>
+          )}
+
+          {/* Restaurant Grid */}
+          {!loading && filtered.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filtered.map((restaurant) => (
+                <RestaurantCard
+                  key={restaurant.slug || restaurant.id}
+                  restaurant={restaurant}
+                  backendUrl={backendUrl}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Food Court Amenities Section */}
+          <AmenitiesSection />
+
+          {/* Mall Information Section */}
+          <MallInfoSection />
         </section>
-      </div>
-    </main>
+      </main>
+
+      <Footer />
+    </div>
   )
 }

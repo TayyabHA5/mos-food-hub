@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function SuperAdminDashboard() {
   const [restaurants, setRestaurants] = useState([])
@@ -10,7 +11,9 @@ export default function SuperAdminDashboard() {
   const [showMenuModal, setShowMenuModal] = useState(false)
 
   const [loading, setLoading] = useState(true)
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mall-of-sargodha-backend-dl1yin-7b34d3-187-77-180-230.sslip.io'
+  const backendUrl =
+    process.env.NEXT_PUBLIC_API_URL ||
+    'https://mall-of-sargodha-backend-dl1yin-7b34d3-187-77-180-230.sslip.io'
 
   // Add Outlet State
   const [selectedFiles, setSelectedFiles] = useState([])
@@ -23,7 +26,7 @@ export default function SuperAdminDashboard() {
     tagline: '',
     opening_time: '11:00',
     closing_time: '23:00',
-    status_override: 'auto'
+    status_override: 'auto',
   })
 
   // Edit Outlet State
@@ -36,7 +39,7 @@ export default function SuperAdminDashboard() {
     tagline: '',
     opening_time: '11:00',
     closing_time: '23:00',
-    status_override: 'auto'
+    status_override: 'auto',
   })
   const [editLogo, setEditLogo] = useState(null)
 
@@ -48,8 +51,6 @@ export default function SuperAdminDashboard() {
   const router = useRouter()
 
   useEffect(() => {
-
-
     const role = localStorage.getItem('mos-role')
     const token = localStorage.getItem('mos-token')
 
@@ -73,7 +74,7 @@ export default function SuperAdminDashboard() {
     setFormData({
       ...formData,
       name,
-      slug: generateSlug(name)
+      slug: generateSlug(name),
     })
   }
 
@@ -82,7 +83,7 @@ export default function SuperAdminDashboard() {
     setEditFormData({
       ...editFormData,
       name,
-      slug: generateSlug(name)
+      slug: generateSlug(name),
     })
   }
 
@@ -94,7 +95,7 @@ export default function SuperAdminDashboard() {
       setRestaurants(data)
 
       if (managingRestaurant) {
-        const updated = data.find(r => r.id === managingRestaurant.id)
+        const updated = data.find((r) => r.id === managingRestaurant.id)
         if (updated) setManagingRestaurant(updated)
       }
     } catch (err) {
@@ -130,8 +131,8 @@ export default function SuperAdminDashboard() {
     try {
       const response = await fetch(`${backendUrl}/restaurants/`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: data
+        headers: { Authorization: `Bearer ${token}` },
+        body: data,
       })
 
       if (response.ok) {
@@ -145,7 +146,7 @@ export default function SuperAdminDashboard() {
           tagline: '',
           opening_time: '11:00',
           closing_time: '23:00',
-          status_override: 'auto'
+          status_override: 'auto',
         })
         setSelectedFiles([])
         setSelectedLogo(null)
@@ -170,7 +171,7 @@ export default function SuperAdminDashboard() {
       tagline: res.tagline || '',
       opening_time: res.opening_time || '11:00',
       closing_time: res.closing_time || '23:00',
-      status_override: res.status_override || 'auto'
+      status_override: res.status_override || 'auto',
     })
     setEditLogo(null)
     setShowEditModal(true)
@@ -199,8 +200,8 @@ export default function SuperAdminDashboard() {
     try {
       const response = await fetch(`${backendUrl}/restaurants/${editingRestaurant.id}`, {
         method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: data
+        headers: { Authorization: `Bearer ${token}` },
+        body: data,
       })
 
       if (response.ok) {
@@ -225,7 +226,7 @@ export default function SuperAdminDashboard() {
     try {
       const response = await fetch(`${backendUrl}/restaurants/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       })
       if (response.ok) fetchRestaurants()
     } catch (err) {
@@ -245,14 +246,17 @@ export default function SuperAdminDashboard() {
 
     const token = localStorage.getItem('mos-token')
     try {
-      const response = await fetch(`${backendUrl}/restaurants/${managingRestaurant.id}/menu-images`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ image_url: imageUrl })
-      })
+      const response = await fetch(
+        `${backendUrl}/restaurants/${managingRestaurant.id}/menu-images`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ image_url: imageUrl }),
+        }
+      )
 
       if (response.ok) {
         const updatedRes = await response.json()
@@ -278,11 +282,14 @@ export default function SuperAdminDashboard() {
     }
 
     try {
-      const response = await fetch(`${backendUrl}/restaurants/${managingRestaurant.id}/menu-images`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: data
-      })
+      const response = await fetch(
+        `${backendUrl}/restaurants/${managingRestaurant.id}/menu-images`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: data,
+        }
+      )
 
       if (response.ok) {
         const updatedRes = await response.json()
@@ -304,37 +311,64 @@ export default function SuperAdminDashboard() {
     router.push('/admin/login')
   }
 
-  if (loading) return (
-    <main className="min-h-screen bg-[#08121e] flex flex-col items-center justify-center gap-3">
-      <div className="h-10 w-10 border-4 border-[#f5ba4b] border-t-transparent rounded-full animate-spin" />
-      <p className="font-bold text-xs uppercase tracking-widest text-[#f5ba4b]">Loading Directory...</p>
-    </main>
-  )
+  const formatTime12 = (timeStr = '11:00') => {
+    try {
+      const [h, m] = timeStr.split(':').map(Number)
+      const period = h >= 12 ? 'PM' : 'AM'
+      const h12 = h % 12 === 0 ? 12 : h % 12
+      const mStr = m < 10 ? `0${m}` : m
+      return `${h12}:${mStr} ${period}`
+    } catch (e) {
+      return timeStr
+    }
+  }
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center gap-3 font-sans">
+        <div className="h-8 w-8 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
+        <p className="font-semibold text-xs text-slate-600">Loading Directory...</p>
+      </main>
+    )
+  }
 
   return (
-    <main className="min-h-screen bg-[#08121e] text-[#e6edf8]">
-      <nav className="border-b border-[#1e2e40] bg-[#0b1722] px-6 py-4 shadow-md">
+    <main className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
+      <nav className="border-b border-slate-200 bg-white px-6 py-4 shadow-subtle">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">👑</span>
-            <h1 className="text-lg font-black tracking-tight text-white">Super Admin <span className="text-[#f5ba4b]">Directory Editor</span></h1>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white font-bold text-sm">
+              M
+            </div>
+            <h1 className="text-base font-bold tracking-tight text-slate-900">
+              Directory Editor <span className="font-normal text-slate-500">· Super Admin</span>
+            </h1>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-[10px] text-[#8a9db0] font-mono uppercase bg-[#08121e] px-3 py-1 rounded-full border border-[#1e2e40]">API: {backendUrl}</span>
-            <button onClick={handleLogout} className="text-xs font-bold text-[#8a9db0] hover:text-red-400 transition-colors">Logout</button>
+            <Link href="/admin" className="text-xs font-semibold text-slate-600 hover:text-slate-900">
+              ← Overview
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="text-xs font-semibold text-slate-600 hover:text-rose-600 transition-colors"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </nav>
 
       <div className="mx-auto max-w-6xl p-6 sm:p-10">
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#1e2e40]">
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
           <div>
-            <h2 className="text-3xl font-black tracking-tight text-white">Mall Directory</h2>
-            <p className="mt-1 text-xs text-[#8a9db0]">Create, edit, and manage menu galleries and operational hours for all outlets in Mall of Sargodha.</p>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Mall Directory</h2>
+            <p className="mt-1 text-xs text-slate-500">
+              Create, edit, and manage menu galleries and operational hours for all outlets in Mall of Sargodha.
+            </p>
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="rounded-2xl bg-[#f5ba4b] px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-[#121110] hover:bg-[#f6c360] active:scale-95 transition-all shadow-lg shadow-[#f5ba4b]/15"
+            className="rounded-lg bg-slate-900 px-4 py-2.5 text-xs font-semibold text-white hover:bg-slate-800 transition-colors shadow-subtle"
           >
             + Add New Outlet
           </button>
@@ -342,15 +376,18 @@ export default function SuperAdminDashboard() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {restaurants.length === 0 ? (
-            <div className="col-span-full py-20 text-center border-2 border-dashed border-[#1e2e40] rounded-[36px] bg-[#0f1d2c]/50">
-              <p className="text-sm font-medium text-[#8a9db0]">No restaurants found in directory. Create your first one!</p>
+            <div className="col-span-full py-16 text-center border-2 border-dashed border-slate-300 rounded-2xl bg-white">
+              <p className="text-sm font-medium text-slate-500">No restaurants found in directory. Create your first one!</p>
             </div>
           ) : (
-            restaurants.map(res => (
-              <div key={res.id} className="rounded-3xl border border-[#1e2e40] bg-[#0f1d2c] p-6 shadow-xl hover:border-[#f5ba4b]/40 transition-all duration-200 flex flex-col justify-between">
+            restaurants.map((res) => (
+              <div
+                key={res.id}
+                className="rounded-xl border border-slate-200 bg-white p-5 shadow-subtle hover:border-slate-300 transition-all flex flex-col justify-between"
+              >
                 <div>
                   <div className="mb-4 flex items-center justify-between">
-                    <div className="h-14 w-14 rounded-2xl bg-[#142637] flex items-center justify-center overflow-hidden border border-[#21354a] text-xl font-bold text-[#f5ba4b]">
+                    <div className="h-12 w-12 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 text-base font-bold text-slate-800">
                       {res.logo_url ? (
                         <img src={`${backendUrl}${res.logo_url}`} className="h-full w-full object-cover" alt="logo" />
                       ) : (
@@ -360,70 +397,77 @@ export default function SuperAdminDashboard() {
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => openEditModal(res)}
-                        className="px-3 py-1.5 rounded-xl border border-[#21354a] bg-[#08121e] text-[#f5ba4b] hover:border-[#f5ba4b] text-[10px] uppercase font-bold transition-all"
+                        className="px-2.5 py-1 rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold transition-all"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(res.id)}
-                        className="px-3 py-1.5 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-[10px] uppercase font-bold transition-all"
+                        className="px-2.5 py-1 rounded-md border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-semibold transition-all"
                       >
                         Delete
                       </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-xl font-bold text-white leading-tight">{res.name}</h3>
-                    {res.is_open ? (
-                      <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[9px] font-bold text-emerald-400 uppercase tracking-tight">
-                        🟢 Open
+                  <h3 className="text-base font-bold text-slate-900 truncate">{res.name}</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">{res.cuisine} · {res.floor}</p>
+
+                  <div className="mt-3 py-2 border-y border-slate-100 text-xs space-y-1">
+                    <div className="flex justify-between text-slate-500">
+                      <span>Hours:</span>
+                      <span className="font-semibold text-slate-800">
+                        {formatTime12(res.opening_time)} – {formatTime12(res.closing_time)}
                       </span>
-                    ) : (
-                      <span className="rounded-full bg-red-500/10 border border-red-500/30 px-2.5 py-0.5 text-[9px] font-bold text-red-400 uppercase tracking-tight">
-                        🔴 Closed
+                    </div>
+                    <div className="flex justify-between text-slate-500">
+                      <span>Status:</span>
+                      <span className={`font-semibold ${res.is_open ? 'text-emerald-700' : 'text-slate-500'}`}>
+                        {res.status_override === 'force_open'
+                          ? 'Force Open'
+                          : res.status_override === 'force_closed'
+                          ? 'Force Closed'
+                          : res.is_open
+                          ? 'Open Now (Auto)'
+                          : 'Closed (Auto)'}
                       </span>
-                    )}
+                    </div>
                   </div>
 
-                  <p className="mt-1 text-xs text-[#8a9db0] font-semibold uppercase tracking-wider">{res.cuisine} • {res.floor}</p>
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold text-slate-700">Menu Pages</p>
+                      <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                        {res.menu_images ? JSON.parse(res.menu_images).length : 0} Pages
+                      </span>
+                    </div>
 
-                  <div className="mt-2 flex items-center gap-2 text-[10px] text-[#8a9db0] font-mono">
-                    <span>⏰ Hours: {res.opening_time || '11:00'} - {res.closing_time || '23:00'}</span>
-                    <span className="text-[#f5ba4b]">({res.status_override === 'auto' ? 'Scheduled' : res.status_override})</span>
-                  </div>
-
-                  {res.tagline && <p className="mt-2 text-xs italic text-[#f5ba4b]/80">"{res.tagline}"</p>}
-                </div>
-
-                <div className="mt-6 border-t border-[#1e2e40] pt-4">
-                   <div className="flex items-center justify-between mb-3">
-                     <p className="text-[10px] uppercase text-[#8a9db0] font-bold tracking-wider">Menu Gallery</p>
-                     <span className="text-[10px] font-bold text-[#f5ba4b] bg-[#f5ba4b]/10 border border-[#f5ba4b]/20 px-2 py-0.5 rounded-full">
-                      {res.menu_images ? JSON.parse(res.menu_images).length : 0} Pages
-                     </span>
-                   </div>
-
-                   <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                      {res.menu_images && JSON.parse(res.menu_images).length > 0 ?
+                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hidden">
+                      {res.menu_images && JSON.parse(res.menu_images).length > 0 ? (
                         JSON.parse(res.menu_images).map((imgUrl, i) => (
-                          <div key={i} className="h-16 w-12 rounded-xl bg-[#142637] shrink-0 overflow-hidden border border-[#21354a]">
-                             <img
-                               src={`${backendUrl}${imgUrl}`}
-                               alt="menu"
-                               className="h-full w-full object-cover"
-                               onError={(e) => { e.target.style.display='none' }}
-                             />
+                          <div key={i} className="h-16 w-12 rounded-lg bg-slate-100 shrink-0 overflow-hidden border border-slate-200">
+                            <img
+                              src={`${backendUrl}${imgUrl}`}
+                              alt="menu"
+                              className="h-full w-full object-cover"
+                              onError={(e) => {
+                                e.target.style.display = 'none'
+                              }}
+                            />
                           </div>
-                        )) : <span className="text-[11px] text-[#5b6e82] italic py-2">No images uploaded</span>}
-                   </div>
+                        ))
+                      ) : (
+                        <span className="text-xs text-slate-400 italic py-1">No images uploaded</span>
+                      )}
+                    </div>
 
-                   <button
-                    onClick={() => openMenuModal(res)}
-                    className="mt-4 w-full rounded-2xl border border-[#21354a] bg-[#08121e] py-3 text-xs font-bold text-[#f5ba4b] hover:border-[#f5ba4b] transition-all shadow-md"
-                  >
-                    Manage Menu Images →
-                  </button>
+                    <button
+                      onClick={() => openMenuModal(res)}
+                      className="mt-3 w-full rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 py-2 text-xs font-semibold text-slate-800 transition-colors"
+                    >
+                      Manage Menu Images
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
@@ -433,54 +477,56 @@ export default function SuperAdminDashboard() {
 
       {/* ADD RESTAURANT MODAL */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-[36px] border border-[#1e2e40] bg-[#0f1d2c] p-8 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="mb-6 pb-4 border-b border-[#1e2e40] flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-modal">
+            <div className="mb-5 pb-3 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-black text-white">New Outlet</h2>
-                <p className="text-xs text-[#8a9db0]">Add a new shop to Mall of Sargodha directory.</p>
+                <h2 className="text-lg font-bold text-slate-900">New Outlet</h2>
+                <p className="text-xs text-slate-500">Add a new outlet to Mall of Sargodha directory.</p>
               </div>
-              <button onClick={() => setShowAddModal(false)} className="text-xs font-bold text-[#8a9db0] hover:text-white">✕</button>
+              <button onClick={() => setShowAddModal(false)} className="text-xs font-bold text-slate-400 hover:text-slate-700">
+                ✕
+              </button>
             </div>
 
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Restaurant Name</label>
+                <label className="text-xs font-semibold text-slate-700 mb-1 block">Restaurant Name</label>
                 <input
                   value={formData.name}
                   onChange={handleNameChange}
-                  placeholder="e.g. KFC, Pizza Hut"
-                  className="w-full rounded-2xl border border-[#1e2e40] bg-[#08121e] px-4 py-3 text-sm text-[#e6edf8] outline-none focus:border-[#f5ba4b] transition-colors"
+                  placeholder="e.g. California Pizza, Subway"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-800 outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-[#5b6e82] uppercase tracking-widest mb-1.5 block">Auto-Generated Slug</label>
+                <label className="text-xs font-semibold text-slate-500 mb-1 block">Slug</label>
                 <input
                   value={formData.slug}
-                  className="w-full rounded-2xl border border-[#1e2e40] bg-[#04090f] px-4 py-3 text-[#5b6e82] outline-none cursor-not-allowed text-xs font-mono"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2 text-slate-500 outline-none cursor-not-allowed text-xs font-mono"
                   readOnly
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Cuisine</label>
+                  <label className="text-xs font-semibold text-slate-700 mb-1 block">Cuisine</label>
                   <input
                     value={formData.cuisine}
-                    onChange={e => setFormData({...formData, cuisine: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, cuisine: e.target.value })}
                     placeholder="e.g. Fast Food"
-                    className="w-full rounded-2xl border border-[#1e2e40] bg-[#08121e] px-4 py-3 text-sm text-[#e6edf8] outline-none focus:border-[#f5ba4b]"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-800 outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Floor</label>
+                  <label className="text-xs font-semibold text-slate-700 mb-1 block">Floor</label>
                   <select
                     value={formData.floor}
-                    onChange={e => setFormData({...formData, floor: e.target.value})}
-                    className="w-full rounded-2xl border border-[#1e2e40] bg-[#08121e] px-4 py-3 text-sm text-[#e6edf8] outline-none focus:border-[#f5ba4b] appearance-none"
+                    onChange={(e) => setFormData({ ...formData, floor: e.target.value })}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-800 outline-none"
                   >
                     <option>Ground Floor</option>
                     <option>1st Floor</option>
@@ -490,36 +536,35 @@ export default function SuperAdminDashboard() {
                 </div>
               </div>
 
-              {/* Schedule Hours & Status Override */}
-              <div className="grid grid-cols-2 gap-3 border-t border-[#1e2e40] pt-3">
+              <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
                 <div>
-                  <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Opening Time</label>
+                  <label className="text-xs font-semibold text-slate-700 mb-1 block">Opening Time</label>
                   <input
                     type="time"
                     value={formData.opening_time}
-                    onChange={e => setFormData({...formData, opening_time: e.target.value})}
-                    className="w-full rounded-2xl border border-[#1e2e40] bg-[#08121e] px-4 py-3 text-sm text-[#e6edf8] outline-none focus:border-[#f5ba4b]"
+                    onChange={(e) => setFormData({ ...formData, opening_time: e.target.value })}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-800 outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Closing Time</label>
+                  <label className="text-xs font-semibold text-slate-700 mb-1 block">Closing Time</label>
                   <input
                     type="time"
                     value={formData.closing_time}
-                    onChange={e => setFormData({...formData, closing_time: e.target.value})}
-                    className="w-full rounded-2xl border border-[#1e2e40] bg-[#08121e] px-4 py-3 text-sm text-[#e6edf8] outline-none focus:border-[#f5ba4b]"
+                    onChange={(e) => setFormData({ ...formData, closing_time: e.target.value })}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-800 outline-none"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Status Mode</label>
+                <label className="text-xs font-semibold text-slate-700 mb-1 block">Status Mode</label>
                 <select
                   value={formData.status_override}
-                  onChange={e => setFormData({...formData, status_override: e.target.value})}
-                  className="w-full rounded-2xl border border-[#1e2e40] bg-[#08121e] px-4 py-3 text-sm text-[#e6edf8] outline-none focus:border-[#f5ba4b]"
+                  onChange={(e) => setFormData({ ...formData, status_override: e.target.value })}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-800 outline-none"
                 >
                   <option value="auto">Auto (Follow Scheduled Hours)</option>
                   <option value="force_open">Force Open (Always Open)</option>
@@ -527,60 +572,54 @@ export default function SuperAdminDashboard() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 border-t border-[#1e2e40] pt-3">
+              <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
                 <div>
-                  <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Shop Logo</label>
+                  <label className="text-xs font-semibold text-slate-700 mb-1 block">Shop Logo</label>
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={e => setSelectedLogo(e.target.files[0])}
+                    onChange={(e) => setSelectedLogo(e.target.files[0])}
                     className="hidden"
                     id="logo-upload"
                   />
                   <label
                     htmlFor="logo-upload"
-                    className="flex flex-col items-center justify-center w-full h-24 rounded-2xl border-2 border-dashed border-[#1e2e40] bg-[#08121e] hover:border-[#f5ba4b]/50 cursor-pointer transition-all"
+                    className="flex flex-col items-center justify-center w-full h-20 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 cursor-pointer transition-all text-xs font-medium text-slate-600"
                   >
-                    <span className="text-xl mb-1">🏪</span>
-                    <span className="text-[10px] font-bold text-[#8a9db0]">
-                      {selectedLogo ? 'Logo Selected' : 'Upload Logo'}
-                    </span>
+                    <span>{selectedLogo ? 'Logo Selected' : 'Upload Logo'}</span>
                   </label>
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Menu Images</label>
+                  <label className="text-xs font-semibold text-slate-700 mb-1 block">Menu Images</label>
                   <input
                     type="file"
                     multiple
                     accept="image/*"
-                    onChange={e => setSelectedFiles(e.target.files)}
+                    onChange={(e) => setSelectedFiles(e.target.files)}
                     className="hidden"
                     id="file-upload"
                   />
                   <label
                     htmlFor="file-upload"
-                    className="flex flex-col items-center justify-center w-full h-24 rounded-2xl border-2 border-dashed border-[#1e2e40] bg-[#08121e] hover:border-[#f5ba4b]/50 cursor-pointer transition-all"
+                    className="flex flex-col items-center justify-center w-full h-20 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 cursor-pointer transition-all text-xs font-medium text-slate-600"
                   >
-                    <span className="text-xl mb-1">📸</span>
-                    <span className="text-[10px] font-bold text-[#8a9db0]">
-                      {selectedFiles.length > 0 ? `${selectedFiles.length} Menus` : 'Upload Menus'}
-                    </span>
+                    <span>{selectedFiles.length > 0 ? `${selectedFiles.length} Menus` : 'Upload Menus'}</span>
                   </label>
                 </div>
               </div>
 
-              <div className="mt-8 flex gap-3 pt-4 border-t border-[#1e2e40]">
+              <div className="mt-6 flex gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 rounded-2xl border border-[#1e2e40] py-3.5 text-xs font-bold hover:bg-white/5 transition-colors"
+                  className="flex-1 rounded-lg border border-slate-200 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 rounded-2xl bg-[#f5ba4b] py-3.5 text-xs font-bold uppercase tracking-wider text-[#121110] shadow-lg shadow-[#f5ba4b]/15 hover:bg-[#f6c360] active:scale-95 transition-all disabled:opacity-50"
+                  className="flex-1 rounded-lg bg-slate-900 py-2.5 text-xs font-semibold text-white hover:bg-slate-800 transition-colors shadow-subtle disabled:opacity-50"
                 >
                   {isSubmitting ? 'Creating...' : 'Create Outlet'}
                 </button>
@@ -592,53 +631,55 @@ export default function SuperAdminDashboard() {
 
       {/* EDIT RESTAURANT MODAL */}
       {showEditModal && editingRestaurant && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-[36px] border border-[#1e2e40] bg-[#0f1d2c] p-8 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="mb-6 pb-4 border-b border-[#1e2e40] flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-modal">
+            <div className="mb-5 pb-3 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-black text-white">Edit Restaurant</h2>
-                <p className="text-xs text-[#8a9db0]">Update outlet details for {editingRestaurant.name}.</p>
+                <h2 className="text-lg font-bold text-slate-900">Edit Restaurant</h2>
+                <p className="text-xs text-slate-500">Update outlet details for {editingRestaurant.name}.</p>
               </div>
-              <button onClick={() => setShowEditModal(false)} className="text-xs font-bold text-[#8a9db0] hover:text-white">✕</button>
+              <button onClick={() => setShowEditModal(false)} className="text-xs font-bold text-slate-400 hover:text-slate-700">
+                ✕
+              </button>
             </div>
 
             <form onSubmit={handleUpdate} className="space-y-4">
               <div>
-                <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Restaurant Name</label>
+                <label className="text-xs font-semibold text-slate-700 mb-1 block">Restaurant Name</label>
                 <input
                   value={editFormData.name}
                   onChange={handleEditNameChange}
-                  className="w-full rounded-2xl border border-[#1e2e40] bg-[#08121e] px-4 py-3 text-sm text-[#e6edf8] outline-none focus:border-[#f5ba4b] transition-colors"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-800 outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-[#5b6e82] uppercase tracking-widest mb-1.5 block">Slug</label>
+                <label className="text-xs font-semibold text-slate-500 mb-1 block">Slug</label>
                 <input
                   value={editFormData.slug}
-                  onChange={e => setEditFormData({...editFormData, slug: e.target.value})}
-                  className="w-full rounded-2xl border border-[#1e2e40] bg-[#08121e] px-4 py-3 text-xs font-mono text-[#e6edf8] outline-none focus:border-[#f5ba4b]"
+                  onChange={(e) => setEditFormData({ ...editFormData, slug: e.target.value })}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-mono text-slate-900 focus:border-slate-800 outline-none"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Cuisine</label>
+                  <label className="text-xs font-semibold text-slate-700 mb-1 block">Cuisine</label>
                   <input
                     value={editFormData.cuisine}
-                    onChange={e => setEditFormData({...editFormData, cuisine: e.target.value})}
-                    className="w-full rounded-2xl border border-[#1e2e40] bg-[#08121e] px-4 py-3 text-sm text-[#e6edf8] outline-none focus:border-[#f5ba4b]"
+                    onChange={(e) => setEditFormData({ ...editFormData, cuisine: e.target.value })}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-800 outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Floor</label>
+                  <label className="text-xs font-semibold text-slate-700 mb-1 block">Floor</label>
                   <select
                     value={editFormData.floor}
-                    onChange={e => setEditFormData({...editFormData, floor: e.target.value})}
-                    className="w-full rounded-2xl border border-[#1e2e40] bg-[#08121e] px-4 py-3 text-sm text-[#e6edf8] outline-none focus:border-[#f5ba4b] appearance-none"
+                    onChange={(e) => setEditFormData({ ...editFormData, floor: e.target.value })}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-800 outline-none"
                   >
                     <option>Ground Floor</option>
                     <option>1st Floor</option>
@@ -648,36 +689,35 @@ export default function SuperAdminDashboard() {
                 </div>
               </div>
 
-              {/* Schedule Hours & Status Override */}
-              <div className="grid grid-cols-2 gap-3 border-t border-[#1e2e40] pt-3">
+              <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
                 <div>
-                  <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Opening Time</label>
+                  <label className="text-xs font-semibold text-slate-700 mb-1 block">Opening Time</label>
                   <input
                     type="time"
                     value={editFormData.opening_time}
-                    onChange={e => setEditFormData({...editFormData, opening_time: e.target.value})}
-                    className="w-full rounded-2xl border border-[#1e2e40] bg-[#08121e] px-4 py-3 text-sm text-[#e6edf8] outline-none focus:border-[#f5ba4b]"
+                    onChange={(e) => setEditFormData({ ...editFormData, opening_time: e.target.value })}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-800 outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Closing Time</label>
+                  <label className="text-xs font-semibold text-slate-700 mb-1 block">Closing Time</label>
                   <input
                     type="time"
                     value={editFormData.closing_time}
-                    onChange={e => setEditFormData({...editFormData, closing_time: e.target.value})}
-                    className="w-full rounded-2xl border border-[#1e2e40] bg-[#08121e] px-4 py-3 text-sm text-[#e6edf8] outline-none focus:border-[#f5ba4b]"
+                    onChange={(e) => setEditFormData({ ...editFormData, closing_time: e.target.value })}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-800 outline-none"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Status Mode</label>
+                <label className="text-xs font-semibold text-slate-700 mb-1 block">Status Mode</label>
                 <select
                   value={editFormData.status_override}
-                  onChange={e => setEditFormData({...editFormData, status_override: e.target.value})}
-                  className="w-full rounded-2xl border border-[#1e2e40] bg-[#08121e] px-4 py-3 text-sm text-[#e6edf8] outline-none focus:border-[#f5ba4b]"
+                  onChange={(e) => setEditFormData({ ...editFormData, status_override: e.target.value })}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-800 outline-none"
                 >
                   <option value="auto">Auto (Follow Scheduled Hours)</option>
                   <option value="force_open">Force Open (Always Open)</option>
@@ -686,47 +726,44 @@ export default function SuperAdminDashboard() {
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Tagline</label>
+                <label className="text-xs font-semibold text-slate-700 mb-1 block">Tagline</label>
                 <input
                   value={editFormData.tagline}
-                  onChange={e => setEditFormData({...editFormData, tagline: e.target.value})}
-                  placeholder="e.g. Finger Lickin Good"
-                  className="w-full rounded-2xl border border-[#1e2e40] bg-[#08121e] px-4 py-3 text-sm text-[#e6edf8] outline-none focus:border-[#f5ba4b]"
+                  onChange={(e) => setEditFormData({ ...editFormData, tagline: e.target.value })}
+                  placeholder="e.g. Delicious Gourmet Meals"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-800 outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest mb-1.5 block">Replace Logo (Optional)</label>
+                <label className="text-xs font-semibold text-slate-700 mb-1 block">Replace Logo (Optional)</label>
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={e => setEditLogo(e.target.files[0])}
+                  onChange={(e) => setEditLogo(e.target.files[0])}
                   className="hidden"
                   id="edit-logo-upload"
                 />
                 <label
                   htmlFor="edit-logo-upload"
-                  className="flex items-center gap-3 w-full p-3.5 rounded-2xl border-2 border-dashed border-[#1e2e40] bg-[#08121e] hover:border-[#f5ba4b]/50 cursor-pointer transition-all"
+                  className="flex items-center gap-2 w-full p-2.5 rounded-lg border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 cursor-pointer text-xs font-medium text-slate-700"
                 >
-                  <span className="text-xl">🖼️</span>
-                  <span className="text-xs font-bold text-[#8a9db0]">
-                    {editLogo ? editLogo.name : 'Choose New Logo File'}
-                  </span>
+                  <span>{editLogo ? editLogo.name : 'Choose New Logo File'}</span>
                 </label>
               </div>
 
-              <div className="mt-8 flex gap-3 pt-4 border-t border-[#1e2e40]">
+              <div className="mt-6 flex gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="flex-1 rounded-2xl border border-[#1e2e40] py-3.5 text-xs font-bold hover:bg-white/5 transition-colors"
+                  className="flex-1 rounded-lg border border-slate-200 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 rounded-2xl bg-[#f5ba4b] py-3.5 text-xs font-bold uppercase tracking-wider text-[#121110] shadow-lg shadow-[#f5ba4b]/15 hover:bg-[#f6c360] active:scale-95 transition-all disabled:opacity-50"
+                  className="flex-1 rounded-lg bg-slate-900 py-2.5 text-xs font-semibold text-white hover:bg-slate-800 transition-colors shadow-subtle disabled:opacity-50"
                 >
                   {isSubmitting ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -738,71 +775,68 @@ export default function SuperAdminDashboard() {
 
       {/* MANAGE MENU GALLERY MODAL */}
       {showMenuModal && managingRestaurant && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-xl rounded-[36px] border border-[#1e2e40] bg-[#0f1d2c] p-8 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="mb-6 pb-4 border-b border-[#1e2e40] flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-modal">
+            <div className="mb-5 pb-3 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-black text-white">Manage Menu Gallery</h2>
-                <p className="text-xs text-[#8a9db0] font-semibold">{managingRestaurant.name}</p>
+                <h2 className="text-lg font-bold text-slate-900">Manage Menu Gallery</h2>
+                <p className="text-xs text-slate-500 font-semibold">{managingRestaurant.name}</p>
               </div>
               <button
                 onClick={() => setShowMenuModal(false)}
-                className="text-xs font-bold text-[#8a9db0] hover:text-white"
+                className="text-xs font-bold text-slate-400 hover:text-slate-700"
               >
                 ✕ Close
               </button>
             </div>
 
             {/* Current Menu Gallery Grid */}
-            <div className="mb-8">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[#f5ba4b] mb-3">Current Menu Pages</p>
+            <div className="mb-6">
+              <p className="text-xs font-semibold text-slate-700 mb-2">Current Menu Pages</p>
               {managingRestaurant.menu_images && JSON.parse(managingRestaurant.menu_images).length > 0 ? (
                 <div className="grid grid-cols-3 gap-3">
                   {JSON.parse(managingRestaurant.menu_images).map((imgUrl, idx) => (
-                    <div key={idx} className="relative group rounded-2xl bg-[#08121e] border border-[#1e2e40] overflow-hidden p-1">
-                      <img src={`${backendUrl}${imgUrl}`} alt={`menu-${idx}`} className="h-32 w-full object-cover rounded-xl" />
+                    <div key={idx} className="relative group rounded-lg bg-slate-100 border border-slate-200 overflow-hidden p-1">
+                      <img src={`${backendUrl}${imgUrl}`} alt={`menu-${idx}`} className="h-32 w-full object-cover rounded" />
                       <button
                         onClick={() => handleDeleteMenuImage(imgUrl)}
-                        className="absolute top-2 right-2 rounded-lg bg-red-600/90 hover:bg-red-600 text-white p-1 text-[10px] font-bold shadow-md transition-transform hover:scale-110"
+                        className="absolute top-2 right-2 rounded bg-rose-600 hover:bg-rose-700 text-white px-1.5 py-0.5 text-[10px] font-semibold shadow-sm transition-transform hover:scale-105"
                         title="Delete image"
                       >
-                        🗑️ Delete
+                        Delete
                       </button>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="rounded-2xl border border-dashed border-[#1e2e40] bg-[#08121e] p-8 text-center text-xs text-[#8a9db0]">
+                <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-xs text-slate-500">
                   No menu images uploaded yet for this outlet.
                 </div>
               )}
             </div>
 
             {/* Add New Menu Images Form */}
-            <form onSubmit={handleUploadNewMenuImages} className="border-t border-[#1e2e40] pt-6 space-y-4">
-              <label className="text-[10px] font-bold text-[#f5ba4b] uppercase tracking-widest block">Upload Additional Menu Images</label>
+            <form onSubmit={handleUploadNewMenuImages} className="border-t border-slate-100 pt-5 space-y-3">
+              <label className="text-xs font-semibold text-slate-700 block">Upload Additional Menu Images</label>
               <input
                 type="file"
                 multiple
                 accept="image/*"
-                onChange={e => setNewMenuFiles(e.target.files)}
+                onChange={(e) => setNewMenuFiles(e.target.files)}
                 className="hidden"
                 id="add-menu-files"
               />
               <label
                 htmlFor="add-menu-files"
-                className="flex flex-col items-center justify-center w-full h-28 rounded-2xl border-2 border-dashed border-[#1e2e40] bg-[#08121e] hover:border-[#f5ba4b]/50 cursor-pointer transition-all"
+                className="flex flex-col items-center justify-center w-full h-24 rounded-lg border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 cursor-pointer transition-all text-xs font-medium text-slate-600"
               >
-                <span className="text-2xl mb-1">📸</span>
-                <span className="text-xs font-bold text-[#8a9db0]">
-                  {newMenuFiles.length > 0 ? `${newMenuFiles.length} New Images Selected` : 'Click to select image files'}
-                </span>
+                <span>{newMenuFiles.length > 0 ? `${newMenuFiles.length} New Images Selected` : 'Click to select image files'}</span>
               </label>
 
               <button
                 type="submit"
                 disabled={newMenuFiles.length === 0 || isSubmitting}
-                className="w-full rounded-2xl bg-[#f5ba4b] py-3.5 text-xs font-bold uppercase tracking-wider text-[#121110] disabled:opacity-40 shadow-lg shadow-[#f5ba4b]/15 hover:bg-[#f6c360] active:scale-95 transition-all"
+                className="w-full rounded-lg bg-slate-900 py-2.5 text-xs font-semibold text-white disabled:opacity-40 hover:bg-slate-800 transition-colors shadow-subtle"
               >
                 {isSubmitting ? 'Uploading...' : 'Upload & Append To Gallery'}
               </button>
