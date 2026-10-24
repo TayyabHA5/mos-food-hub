@@ -211,7 +211,6 @@ export default function SuperAdminDashboard() {
       })
 
       if (response.ok) {
-        // If additional menu images were selected during edit, upload them now
         if (editMenuFiles.length > 0) {
           const menuData = new FormData()
           for (let i = 0; i < editMenuFiles.length; i++) {
@@ -351,32 +350,32 @@ export default function SuperAdminDashboard() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-black flex flex-col items-center justify-center gap-3 text-amber-500 font-bold">
-        <div className="h-8 w-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-        <p className="font-semibold text-xs text-amber-500 uppercase tracking-widest">Loading Directory...</p>
+      <main className="min-h-screen bg-[#f8fafc] dark:bg-black flex flex-col items-center justify-center gap-3 font-sans transition-colors duration-200">
+        <div className="h-8 w-8 border-2 border-slate-900 dark:border-amber-400 border-t-transparent rounded-full animate-spin" />
+        <p className="font-semibold text-xs text-slate-600 dark:text-amber-400">Loading Directory...</p>
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen bg-black text-zinc-100 font-sans">
-      <nav className="border-b border-zinc-800 bg-zinc-950 px-6 py-4 shadow-md">
+    <main className="min-h-screen bg-[#f8fafc] dark:bg-black text-slate-900 dark:text-zinc-100 font-sans transition-colors duration-200">
+      <nav className="border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-6 py-4 shadow-subtle">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500 text-black font-extrabold text-sm">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 dark:bg-amber-500 text-white dark:text-black font-bold text-sm">
               M
             </div>
-            <h1 className="text-base font-bold tracking-tight text-white">
-              Directory Editor <span className="font-normal text-zinc-400">· Super Admin</span>
+            <h1 className="text-base font-bold tracking-tight text-slate-900 dark:text-white">
+              Directory Editor <span className="font-normal text-slate-500 dark:text-zinc-400">· Super Admin</span>
             </h1>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/admin" className="text-xs font-bold text-zinc-400 hover:text-white transition-colors">
+            <Link href="/admin" className="text-xs font-semibold text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors">
               ← Overview
             </Link>
             <button
               onClick={handleLogout}
-              className="text-xs font-bold text-zinc-400 hover:text-rose-400 transition-colors"
+              className="text-xs font-semibold text-slate-600 dark:text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
             >
               Sign Out
             </button>
@@ -385,16 +384,16 @@ export default function SuperAdminDashboard() {
       </nav>
 
       <div className="mx-auto max-w-6xl p-6 sm:p-10">
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-800">
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-zinc-800">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-white">Mall Directory</h2>
-            <p className="mt-1 text-xs text-zinc-400">
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Mall Directory</h2>
+            <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
               Create, edit, and manage menu galleries and operational hours for all outlets in Mall of Sargodha.
             </p>
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="rounded-lg bg-amber-500 hover:bg-amber-400 px-4 py-2.5 text-xs font-bold text-black transition-colors shadow-md"
+            className="rounded-lg bg-slate-900 dark:bg-amber-500 px-4 py-2.5 text-xs font-semibold text-white dark:text-black hover:bg-slate-800 dark:hover:bg-amber-400 transition-colors shadow-subtle font-bold"
           >
             + Add New Outlet
           </button>
@@ -402,18 +401,18 @@ export default function SuperAdminDashboard() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {restaurants.length === 0 ? (
-            <div className="col-span-full py-16 text-center border-2 border-dashed border-zinc-800 rounded-2xl bg-zinc-950">
-              <p className="text-sm font-medium text-zinc-400">No restaurants found in directory. Create your first one!</p>
+            <div className="col-span-full py-16 text-center border-2 border-dashed border-slate-300 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-950">
+              <p className="text-sm font-medium text-slate-500 dark:text-zinc-400">No restaurants found in directory. Create your first one!</p>
             </div>
           ) : (
             restaurants.map((res) => (
               <div
                 key={res.id}
-                className="rounded-xl border border-zinc-800 bg-zinc-950 p-5 shadow-sm hover:border-zinc-700 transition-all flex flex-col justify-between"
+                className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-subtle hover:border-slate-300 dark:hover:border-zinc-700 transition-all flex flex-col justify-between"
               >
                 <div>
                   <div className="mb-4 flex items-center justify-between">
-                    <div className="h-12 w-12 rounded-lg bg-zinc-900 flex items-center justify-center overflow-hidden border border-zinc-800 text-base font-bold text-amber-400">
+                    <div className="h-12 w-12 rounded-lg bg-slate-100 dark:bg-zinc-900 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-zinc-800 text-base font-bold text-slate-800 dark:text-amber-400">
                       {res.logo_url ? (
                         <img src={`${backendUrl}${res.logo_url}`} className="h-full w-full object-cover" alt="logo" />
                       ) : (
@@ -423,32 +422,32 @@ export default function SuperAdminDashboard() {
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => openEditModal(res)}
-                        className="px-2.5 py-1 rounded-md border border-zinc-800 bg-zinc-900 text-zinc-200 hover:border-amber-400 text-xs font-semibold transition-all"
+                        className="px-2.5 py-1 rounded-md border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-800 text-xs font-semibold transition-all"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(res.id)}
-                        className="px-2.5 py-1 rounded-md border border-rose-900/60 bg-rose-950/40 text-rose-400 hover:bg-rose-900/60 text-xs font-semibold transition-all"
+                        className="px-2.5 py-1 rounded-md border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-xs font-semibold transition-all"
                       >
                         Delete
                       </button>
                     </div>
                   </div>
 
-                  <h3 className="text-base font-bold text-white truncate">{res.name}</h3>
-                  <p className="text-xs text-zinc-400 mt-0.5">{res.cuisine} · {res.floor}</p>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white truncate">{res.name}</h3>
+                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">{res.cuisine} · {res.floor}</p>
 
-                  <div className="mt-3 py-2 border-y border-zinc-800 text-xs space-y-1">
-                    <div className="flex justify-between text-zinc-400">
+                  <div className="mt-3 py-2 border-y border-slate-100 dark:border-zinc-800 text-xs space-y-1">
+                    <div className="flex justify-between text-slate-500 dark:text-zinc-400">
                       <span>Hours:</span>
-                      <span className="font-semibold text-zinc-200">
+                      <span className="font-semibold text-slate-800 dark:text-zinc-200">
                         {formatTime12(res.opening_time)} – {formatTime12(res.closing_time)}
                       </span>
                     </div>
-                    <div className="flex justify-between text-zinc-400">
+                    <div className="flex justify-between text-slate-500 dark:text-zinc-400">
                       <span>Status:</span>
-                      <span className={`font-semibold ${res.is_open ? 'text-emerald-400' : 'text-zinc-400'}`}>
+                      <span className={`font-semibold ${res.is_open ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-500 dark:text-zinc-500'}`}>
                         {res.status_override === 'force_open'
                           ? 'Force Open'
                           : res.status_override === 'force_closed'
@@ -462,8 +461,8 @@ export default function SuperAdminDashboard() {
 
                   <div className="mt-4">
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-semibold text-zinc-300">Menu Pages</p>
-                      <span className="text-[11px] font-medium text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                      <p className="text-xs font-semibold text-slate-700 dark:text-zinc-300">Menu Pages</p>
+                      <span className="text-[11px] font-medium text-slate-500 dark:text-amber-400 bg-slate-100 dark:bg-amber-500/10 px-2 py-0.5 rounded-full border border-slate-200 dark:border-amber-500/20">
                         {res.menu_images ? JSON.parse(res.menu_images).length : 0} Pages
                       </span>
                     </div>
@@ -471,7 +470,7 @@ export default function SuperAdminDashboard() {
                     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hidden">
                       {res.menu_images && JSON.parse(res.menu_images).length > 0 ? (
                         JSON.parse(res.menu_images).map((imgUrl, i) => (
-                          <div key={i} className="h-16 w-12 rounded-lg bg-zinc-900 shrink-0 overflow-hidden border border-zinc-800">
+                          <div key={i} className="h-16 w-12 rounded-lg bg-slate-100 dark:bg-zinc-900 shrink-0 overflow-hidden border border-slate-200 dark:border-zinc-800">
                             <img
                               src={`${backendUrl}${imgUrl}`}
                               alt="menu"
@@ -483,13 +482,13 @@ export default function SuperAdminDashboard() {
                           </div>
                         ))
                       ) : (
-                        <span className="text-xs text-zinc-500 italic py-1">No images uploaded</span>
+                        <span className="text-xs text-slate-400 dark:text-zinc-500 italic py-1">No images uploaded</span>
                       )}
                     </div>
 
                     <button
                       onClick={() => openMenuModal(res)}
-                      className="mt-3 w-full rounded-lg border border-zinc-800 bg-zinc-900 hover:border-zinc-700 py-2 text-xs font-semibold text-zinc-200 transition-colors"
+                      className="mt-3 w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 py-2 text-xs font-semibold text-slate-800 dark:text-zinc-200 transition-colors"
                     >
                       Manage Menu Gallery
                     </button>
@@ -503,56 +502,56 @@ export default function SuperAdminDashboard() {
 
       {/* ADD RESTAURANT MODAL */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-950 p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="mb-5 pb-3 border-b border-zinc-800 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 dark:bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-modal">
+            <div className="mb-5 pb-3 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-white">New Outlet</h2>
-                <p className="text-xs text-zinc-400">Add a new outlet to Mall of Sargodha directory.</p>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">New Outlet</h2>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">Add a new outlet to Mall of Sargodha directory.</p>
               </div>
-              <button onClick={() => setShowAddModal(false)} className="text-xs font-bold text-zinc-400 hover:text-white">
+              <button onClick={() => setShowAddModal(false)} className="text-xs font-bold text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-white">
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-zinc-300 mb-1 block">Restaurant Name</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Restaurant Name</label>
                 <input
                   value={formData.name}
                   onChange={handleNameChange}
                   placeholder="e.g. California Pizza, Subway"
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:border-amber-400 outline-none"
+                  className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-slate-800 dark:focus:border-amber-400 outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-zinc-500 mb-1 block">Slug</label>
+                <label className="text-xs font-semibold text-slate-500 dark:text-zinc-500 mb-1 block">Slug</label>
                 <input
                   value={formData.slug}
-                  className="w-full rounded-lg border border-zinc-800 bg-black px-3.5 py-2 text-zinc-500 outline-none cursor-not-allowed text-xs font-mono"
+                  className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-black px-3.5 py-2 text-slate-500 dark:text-zinc-500 outline-none cursor-not-allowed text-xs font-mono"
                   readOnly
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-300 mb-1 block">Cuisine</label>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Cuisine</label>
                   <input
                     value={formData.cuisine}
                     onChange={(e) => setFormData({ ...formData, cuisine: e.target.value })}
                     placeholder="e.g. Fast Food"
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:border-amber-400 outline-none"
+                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-slate-800 dark:focus:border-amber-400 outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-300 mb-1 block">Floor</label>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Floor</label>
                   <select
                     value={formData.floor}
                     onChange={(e) => setFormData({ ...formData, floor: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-white focus:border-amber-400 outline-none"
+                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-slate-800 dark:focus:border-amber-400 outline-none"
                   >
                     <option>Ground Floor</option>
                     <option>1st Floor</option>
@@ -562,35 +561,35 @@ export default function SuperAdminDashboard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 border-t border-zinc-800 pt-3">
+              <div className="grid grid-cols-2 gap-3 border-t border-slate-100 dark:border-zinc-800 pt-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-300 mb-1 block">Opening Time</label>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Opening Time</label>
                   <input
                     type="time"
                     value={formData.opening_time}
                     onChange={(e) => setFormData({ ...formData, opening_time: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-white focus:border-amber-400 outline-none"
+                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-slate-800 dark:focus:border-amber-400 outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-300 mb-1 block">Closing Time</label>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Closing Time</label>
                   <input
                     type="time"
                     value={formData.closing_time}
                     onChange={(e) => setFormData({ ...formData, closing_time: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-white focus:border-amber-400 outline-none"
+                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-slate-800 dark:focus:border-amber-400 outline-none"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-zinc-300 mb-1 block">Status Mode</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Status Mode</label>
                 <select
                   value={formData.status_override}
                   onChange={(e) => setFormData({ ...formData, status_override: e.target.value })}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-white focus:border-amber-400 outline-none"
+                  className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-slate-800 dark:focus:border-amber-400 outline-none"
                 >
                   <option value="auto">Auto (Follow Scheduled Hours)</option>
                   <option value="force_open">Force Open (Always Open)</option>
@@ -598,9 +597,9 @@ export default function SuperAdminDashboard() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 border-t border-zinc-800 pt-3">
+              <div className="grid grid-cols-2 gap-3 border-t border-slate-100 dark:border-zinc-800 pt-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-300 mb-1 block">Shop Logo</label>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Shop Logo</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -610,13 +609,13 @@ export default function SuperAdminDashboard() {
                   />
                   <label
                     htmlFor="logo-upload"
-                    className="flex flex-col items-center justify-center w-full h-20 rounded-xl border border-dashed border-zinc-700 bg-zinc-900 hover:bg-zinc-800/80 cursor-pointer transition-all text-xs font-medium text-zinc-300"
+                    className="flex flex-col items-center justify-center w-full h-20 rounded-xl border border-dashed border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800/80 cursor-pointer transition-all text-xs font-medium text-slate-600 dark:text-zinc-300"
                   >
                     <span>{selectedLogo ? 'Logo Selected' : 'Upload Logo'}</span>
                   </label>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-300 mb-1 block">Menu Images</label>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Menu Images</label>
                   <input
                     type="file"
                     multiple
@@ -627,25 +626,25 @@ export default function SuperAdminDashboard() {
                   />
                   <label
                     htmlFor="file-upload"
-                    className="flex flex-col items-center justify-center w-full h-20 rounded-xl border border-dashed border-zinc-700 bg-zinc-900 hover:bg-zinc-800/80 cursor-pointer transition-all text-xs font-medium text-zinc-300"
+                    className="flex flex-col items-center justify-center w-full h-20 rounded-xl border border-dashed border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800/80 cursor-pointer transition-all text-xs font-medium text-slate-600 dark:text-zinc-300"
                   >
                     <span>{selectedFiles.length > 0 ? `${selectedFiles.length} Menus` : 'Upload Menus'}</span>
                   </label>
                 </div>
               </div>
 
-              <div className="mt-6 flex gap-3 pt-3 border-t border-zinc-800">
+              <div className="mt-6 flex gap-3 pt-3 border-t border-slate-100 dark:border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 rounded-lg border border-zinc-800 py-2.5 text-xs font-semibold text-zinc-300 hover:bg-zinc-900 transition-colors"
+                  className="flex-1 rounded-lg border border-slate-200 dark:border-zinc-800 py-2.5 text-xs font-semibold text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 rounded-lg bg-amber-500 py-2.5 text-xs font-bold text-black hover:bg-amber-400 transition-colors shadow-md disabled:opacity-50"
+                  className="flex-1 rounded-lg bg-slate-900 dark:bg-amber-500 py-2.5 text-xs font-bold text-white dark:text-black hover:bg-slate-800 dark:hover:bg-amber-400 transition-colors shadow-subtle disabled:opacity-50"
                 >
                   {isSubmitting ? 'Creating...' : 'Create Outlet'}
                 </button>
@@ -657,55 +656,55 @@ export default function SuperAdminDashboard() {
 
       {/* EDIT RESTAURANT MODAL (WITH INTEGRATED MENU GALLERY & UPLOADER) */}
       {showEditModal && editingRestaurant && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-lg rounded-2xl border border-zinc-800 bg-zinc-950 p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-2xl space-y-5">
-            <div className="pb-3 border-b border-zinc-800 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 dark:bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-modal space-y-5">
+            <div className="pb-3 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-white">Edit Restaurant & Menus</h2>
-                <p className="text-xs text-zinc-400">Update details & menu pages for {editingRestaurant.name}.</p>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Edit Restaurant & Menus</h2>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">Update details & menu pages for {editingRestaurant.name}.</p>
               </div>
-              <button onClick={() => setShowEditModal(false)} className="text-xs font-bold text-zinc-400 hover:text-white">
+              <button onClick={() => setShowEditModal(false)} className="text-xs font-bold text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-white">
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleUpdate} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-zinc-300 mb-1 block">Restaurant Name</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Restaurant Name</label>
                 <input
                   value={editFormData.name}
                   onChange={handleEditNameChange}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-white focus:border-amber-400 outline-none"
+                  className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-slate-800 dark:focus:border-amber-400 outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-zinc-500 mb-1 block">Slug</label>
+                <label className="text-xs font-semibold text-slate-500 dark:text-zinc-500 mb-1 block">Slug</label>
                 <input
                   value={editFormData.slug}
                   onChange={(e) => setEditFormData({ ...editFormData, slug: e.target.value })}
-                  className="w-full rounded-lg border border-zinc-800 bg-black px-3.5 py-2 text-xs font-mono text-zinc-300 focus:border-amber-400 outline-none"
+                  className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-black px-3.5 py-2 text-xs font-mono text-slate-900 dark:text-zinc-300 focus:border-slate-800 dark:focus:border-amber-400 outline-none"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-300 mb-1 block">Cuisine</label>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Cuisine</label>
                   <input
                     value={editFormData.cuisine}
                     onChange={(e) => setEditFormData({ ...editFormData, cuisine: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-white focus:border-amber-400 outline-none"
+                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-slate-800 dark:focus:border-amber-400 outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-300 mb-1 block">Floor</label>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Floor</label>
                   <select
                     value={editFormData.floor}
                     onChange={(e) => setEditFormData({ ...editFormData, floor: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-white focus:border-amber-400 outline-none"
+                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-slate-800 dark:focus:border-amber-400 outline-none"
                   >
                     <option>Ground Floor</option>
                     <option>1st Floor</option>
@@ -715,35 +714,35 @@ export default function SuperAdminDashboard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 border-t border-zinc-800 pt-3">
+              <div className="grid grid-cols-2 gap-3 border-t border-slate-100 dark:border-zinc-800 pt-3">
                 <div>
-                  <label className="text-xs font-semibold text-zinc-300 mb-1 block">Opening Time</label>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Opening Time</label>
                   <input
                     type="time"
                     value={editFormData.opening_time}
                     onChange={(e) => setEditFormData({ ...editFormData, opening_time: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-white focus:border-amber-400 outline-none"
+                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-slate-800 dark:focus:border-amber-400 outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-zinc-300 mb-1 block">Closing Time</label>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Closing Time</label>
                   <input
                     type="time"
                     value={editFormData.closing_time}
                     onChange={(e) => setEditFormData({ ...editFormData, closing_time: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-white focus:border-amber-400 outline-none"
+                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-slate-800 dark:focus:border-amber-400 outline-none"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-zinc-300 mb-1 block">Status Mode</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Status Mode</label>
                 <select
                   value={editFormData.status_override}
                   onChange={(e) => setEditFormData({ ...editFormData, status_override: e.target.value })}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-white focus:border-amber-400 outline-none"
+                  className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-slate-800 dark:focus:border-amber-400 outline-none"
                 >
                   <option value="auto">Auto (Follow Scheduled Hours)</option>
                   <option value="force_open">Force Open (Always Open)</option>
@@ -752,17 +751,17 @@ export default function SuperAdminDashboard() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-zinc-300 mb-1 block">Tagline</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Tagline</label>
                 <input
                   value={editFormData.tagline}
                   onChange={(e) => setEditFormData({ ...editFormData, tagline: e.target.value })}
                   placeholder="e.g. Delicious Gourmet Meals"
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs text-white focus:border-amber-400 outline-none"
+                  className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-slate-800 dark:focus:border-amber-400 outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-zinc-300 mb-1 block">Replace Shop Logo (Optional)</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Replace Shop Logo (Optional)</label>
                 <input
                   type="file"
                   accept="image/*"
@@ -772,18 +771,18 @@ export default function SuperAdminDashboard() {
                 />
                 <label
                   htmlFor="edit-logo-upload"
-                  className="flex items-center justify-between w-full p-2.5 rounded-lg border border-dashed border-zinc-700 bg-zinc-900 hover:bg-zinc-800 cursor-pointer text-xs font-medium text-zinc-300"
+                  className="flex items-center justify-between w-full p-2.5 rounded-lg border border-dashed border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer text-xs font-medium text-slate-700 dark:text-zinc-300"
                 >
                   <span>{editLogo ? editLogo.name : 'Choose New Logo File'}</span>
-                  <span className="text-[10px] text-amber-400 uppercase font-bold">Browse</span>
+                  <span className="text-[10px] text-slate-900 dark:text-amber-400 uppercase font-bold">Browse</span>
                 </label>
               </div>
 
               {/* INTEGRATED EXISTING MENU GALLERY DISPLAY & DELETER */}
-              <div className="border-t border-zinc-800 pt-4">
+              <div className="border-t border-slate-100 dark:border-zinc-800 pt-4">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-amber-500 block">Existing Menu Pages</label>
-                  <span className="text-[10px] font-mono text-zinc-400">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-amber-500 block">Existing Menu Pages</label>
+                  <span className="text-[10px] font-mono text-slate-500 dark:text-zinc-400">
                     {editingRestaurant.menu_images ? JSON.parse(editingRestaurant.menu_images).length : 0} uploaded
                   </span>
                 </div>
@@ -791,14 +790,14 @@ export default function SuperAdminDashboard() {
                 {editingRestaurant.menu_images && JSON.parse(editingRestaurant.menu_images).length > 0 ? (
                   <div className="grid grid-cols-3 gap-2.5 mb-3">
                     {JSON.parse(editingRestaurant.menu_images).map((imgUrl, idx) => (
-                      <div key={idx} className="relative group rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden p-1">
+                      <div key={idx} className="relative group rounded-lg bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 overflow-hidden p-1">
                         <img src={`${backendUrl}${imgUrl}`} alt={`menu-${idx}`} className="h-28 w-full object-cover rounded" />
                         <div className="mt-1 flex items-center justify-between px-1">
-                          <span className="text-[9px] font-mono text-zinc-400">P. {idx + 1}</span>
+                          <span className="text-[9px] font-mono text-slate-500 dark:text-zinc-400">P. {idx + 1}</span>
                           <button
                             type="button"
                             onClick={() => handleDeleteMenuImage(imgUrl, editingRestaurant)}
-                            className="text-[10px] font-bold text-rose-400 hover:text-rose-300 underline"
+                            className="text-[10px] font-bold text-rose-600 dark:text-rose-400 hover:underline"
                           >
                             Delete
                           </button>
@@ -807,11 +806,11 @@ export default function SuperAdminDashboard() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-zinc-500 italic mb-3">No existing menu images uploaded for this outlet.</p>
+                  <p className="text-xs text-slate-500 dark:text-zinc-500 italic mb-3">No existing menu images uploaded for this outlet.</p>
                 )}
 
                 {/* ADD / APPEND NEW MENU IMAGES OPTION */}
-                <label className="text-xs font-semibold text-zinc-300 mb-1 block">Upload / Append New Menu Images</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Upload / Append New Menu Images</label>
                 <input
                   type="file"
                   multiple
@@ -822,7 +821,7 @@ export default function SuperAdminDashboard() {
                 />
                 <label
                   htmlFor="edit-menu-files-upload"
-                  className="flex flex-col items-center justify-center w-full h-20 rounded-xl border border-dashed border-zinc-700 bg-zinc-900 hover:bg-zinc-800/80 cursor-pointer transition-all text-xs font-medium text-zinc-300"
+                  className="flex flex-col items-center justify-center w-full h-20 rounded-xl border border-dashed border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800/80 cursor-pointer transition-all text-xs font-medium text-slate-600 dark:text-zinc-300"
                 >
                   <span>
                     {editMenuFiles.length > 0 ? `Selected ${editMenuFiles.length} New Menu Images` : 'Click to select new menu image files'}
@@ -830,18 +829,18 @@ export default function SuperAdminDashboard() {
                 </label>
               </div>
 
-              <div className="mt-6 flex gap-3 pt-3 border-t border-zinc-800">
+              <div className="mt-6 flex gap-3 pt-3 border-t border-slate-100 dark:border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="flex-1 rounded-lg border border-zinc-800 py-2.5 text-xs font-semibold text-zinc-300 hover:bg-zinc-900 transition-colors"
+                  className="flex-1 rounded-lg border border-slate-200 dark:border-zinc-800 py-2.5 text-xs font-semibold text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 rounded-lg bg-amber-500 py-2.5 text-xs font-bold text-black hover:bg-amber-400 transition-colors shadow-md disabled:opacity-50"
+                  className="flex-1 rounded-lg bg-slate-900 dark:bg-amber-500 py-2.5 text-xs font-bold text-white dark:text-black hover:bg-slate-800 dark:hover:bg-amber-400 transition-colors shadow-subtle disabled:opacity-50"
                 >
                   {isSubmitting ? 'Saving...' : 'Save & Update Outlet'}
                 </button>
@@ -853,16 +852,16 @@ export default function SuperAdminDashboard() {
 
       {/* MANAGE MENU GALLERY MODAL */}
       {showMenuModal && managingRestaurant && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-xl rounded-2xl border border-zinc-800 bg-zinc-950 p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="mb-5 pb-3 border-b border-zinc-800 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 dark:bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-xl rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-modal">
+            <div className="mb-5 pb-3 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-white">Manage Menu Gallery</h2>
-                <p className="text-xs text-amber-500 font-semibold">{managingRestaurant.name}</p>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Manage Menu Gallery</h2>
+                <p className="text-xs text-slate-500 dark:text-amber-500 font-semibold">{managingRestaurant.name}</p>
               </div>
               <button
                 onClick={() => setShowMenuModal(false)}
-                className="text-xs font-bold text-zinc-400 hover:text-white"
+                className="text-xs font-bold text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-white"
               >
                 ✕ Close
               </button>
@@ -870,11 +869,11 @@ export default function SuperAdminDashboard() {
 
             {/* Current Menu Gallery Grid */}
             <div className="mb-6">
-              <p className="text-xs font-semibold text-zinc-300 mb-2">Current Menu Pages</p>
+              <p className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-2">Current Menu Pages</p>
               {managingRestaurant.menu_images && JSON.parse(managingRestaurant.menu_images).length > 0 ? (
                 <div className="grid grid-cols-3 gap-3">
                   {JSON.parse(managingRestaurant.menu_images).map((imgUrl, idx) => (
-                    <div key={idx} className="relative group rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden p-1">
+                    <div key={idx} className="relative group rounded-lg bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 overflow-hidden p-1">
                       <img src={`${backendUrl}${imgUrl}`} alt={`menu-${idx}`} className="h-32 w-full object-cover rounded" />
                       <button
                         onClick={() => handleDeleteMenuImage(imgUrl, managingRestaurant)}
@@ -887,15 +886,15 @@ export default function SuperAdminDashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900 p-6 text-center text-xs text-zinc-400">
+                <div className="rounded-lg border border-dashed border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 p-6 text-center text-xs text-slate-500 dark:text-zinc-400">
                   No menu images uploaded yet for this outlet.
                 </div>
               )}
             </div>
 
             {/* Add New Menu Images Form */}
-            <form onSubmit={handleUploadNewMenuImages} className="border-t border-zinc-800 pt-5 space-y-3">
-              <label className="text-xs font-semibold text-zinc-300 block">Upload Additional Menu Images</label>
+            <form onSubmit={handleUploadNewMenuImages} className="border-t border-slate-100 dark:border-zinc-800 pt-5 space-y-3">
+              <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 block">Upload Additional Menu Images</label>
               <input
                 type="file"
                 multiple
@@ -906,7 +905,7 @@ export default function SuperAdminDashboard() {
               />
               <label
                 htmlFor="add-menu-files"
-                className="flex flex-col items-center justify-center w-full h-24 rounded-lg border border-dashed border-zinc-700 bg-zinc-900 hover:bg-zinc-800 cursor-pointer transition-all text-xs font-medium text-zinc-300"
+                className="flex flex-col items-center justify-center w-full h-24 rounded-lg border border-dashed border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer transition-all text-xs font-medium text-slate-600 dark:text-zinc-300"
               >
                 <span>{newMenuFiles.length > 0 ? `${newMenuFiles.length} New Images Selected` : 'Click to select image files'}</span>
               </label>
@@ -914,7 +913,7 @@ export default function SuperAdminDashboard() {
               <button
                 type="submit"
                 disabled={newMenuFiles.length === 0 || isSubmitting}
-                className="w-full rounded-lg bg-amber-500 py-2.5 text-xs font-bold text-black disabled:opacity-40 hover:bg-amber-400 transition-colors shadow-md"
+                className="w-full rounded-lg bg-slate-900 dark:bg-amber-500 py-2.5 text-xs font-bold text-white dark:text-black disabled:opacity-40 hover:bg-slate-800 dark:hover:bg-amber-400 transition-colors shadow-subtle"
               >
                 {isSubmitting ? 'Uploading...' : 'Upload & Append To Gallery'}
               </button>
