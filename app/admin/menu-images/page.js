@@ -7,7 +7,7 @@ import { readRestaurants } from '../../../data/restaurant-storage'
 
 export default function MenuImagesAdminPage() {
   const [restaurantList, setRestaurantList] = useState(initialRestaurants)
-  const [restaurantSlug, setRestaurantSlug] = useState(initialRestaurants[0].slug)
+  const [restaurantSlug, setRestaurantSlug] = useState(initialRestaurants[0]?.slug || '')
   const [images, setImages] = useState(null)
   const restaurant = restaurantList.find((item) => item.slug === restaurantSlug) || restaurantList[0]
 
@@ -41,7 +41,7 @@ export default function MenuImagesAdminPage() {
     const files = Array.from(event.target.files || [])
     if (!files.length) return
 
-    const confirmed = window.confirm(`Upload ${files.length} menu image${files.length === 1 ? '' : 's'} for ${restaurant.name}?`)
+    const confirmed = window.confirm(`Upload ${files.length} menu image${files.length === 1 ? '' : 's'} for ${restaurant?.name || 'outlet'}?`)
     if (!confirmed) {
       event.target.value = ''
       return
@@ -74,18 +74,63 @@ export default function MenuImagesAdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f4efe7] text-[#302a24]">
+    <main className="min-h-screen bg-black text-zinc-100 font-sans">
       <div className="mx-auto min-h-screen max-w-5xl p-5 sm:p-8">
-        <Link href="/admin" className="body-font text-[10px] font-bold text-[#b65b2a]">‹ Back to overview</Link>
-        <header className="mt-8 flex flex-wrap items-end justify-between gap-4"><div><p className="body-font text-[10px] font-bold uppercase tracking-[0.16em] text-[#b65b2a]">Content management</p><h1 className="mt-1 text-3xl font-bold">Menu images</h1><p className="body-font mt-2 text-sm text-[#806f63]">Upload complete menu pages instead of entering every item manually.</p></div><label className="body-font cursor-pointer rounded-xl bg-[#b65b2a] px-4 py-2.5 text-[11px] font-bold text-white">+ Upload images<input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={handleUpload} className="sr-only" /></label></header>
+        <Link href="/admin" className="text-xs font-bold text-[#f5ba4b] hover:underline">‹ Back to overview</Link>
+        <header className="mt-8 flex flex-wrap items-end justify-between gap-4 pb-6 border-b border-zinc-800">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#f5ba4b]">Content management</p>
+            <h1 className="mt-1 text-3xl font-bold text-white">Menu images</h1>
+            <p className="mt-2 text-xs text-zinc-400">Upload complete menu pages directly for directory preview.</p>
+          </div>
+          <label className="cursor-pointer rounded-xl bg-[#f5ba4b] hover:bg-[#f6c360] px-4 py-2.5 text-xs font-bold text-black transition-colors shadow-md">
+            + Upload images
+            <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={handleUpload} className="sr-only" />
+          </label>
+        </header>
 
-        <section className="mt-8 rounded-2xl border border-[#e3d5c8] bg-[#fffaf2] p-4 sm:p-5">
+        <section className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-950 p-4 sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <label className="body-font text-[10px] font-bold uppercase tracking-[0.12em] text-[#997967]">Restaurant<select value={restaurantSlug} onChange={(event) => setRestaurantSlug(event.target.value)} className="ml-3 rounded-lg border border-[#dfd2c4] bg-white px-3 py-2 text-xs font-normal normal-case tracking-normal outline-none">{restaurantList.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}</select></label>
-            <span className="body-font text-[10px] text-[#917d6e]">{images?.length || 0} uploaded pages</span>
+            <label className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#f5ba4b]">
+              Restaurant
+              <select
+                value={restaurantSlug}
+                onChange={(event) => setRestaurantSlug(event.target.value)}
+                className="ml-3 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-normal text-white normal-case tracking-normal outline-none focus:border-[#f5ba4b]"
+              >
+                {restaurantList.map((item) => (
+                  <option key={item.slug} value={item.slug}>{item.name}</option>
+                ))}
+              </select>
+            </label>
+            <span className="text-xs font-mono text-zinc-400">{images?.length || 0} uploaded pages</span>
           </div>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{(images || []).map((image, index) => <article key={`${image.name}-${index}`} className="overflow-hidden rounded-xl border border-[#eadfd3] bg-white"><img src={image.url} alt={`Menu page ${index + 1}`} className="aspect-[3/4] w-full object-cover" /><div className="body-font p-3"><div className="flex items-center justify-between gap-2"><p className="truncate text-[10px] font-bold">Page {index + 1}</p><button type="button" onClick={() => removeImage(index)} className="text-[10px] font-bold text-[#a33e2b]">Remove</button></div><div className="mt-2 flex gap-2"><button type="button" onClick={() => moveImage(index, -1)} disabled={index === 0} className="rounded-md border border-[#dfd2c4] px-2 py-1 text-[10px] font-bold disabled:cursor-not-allowed disabled:opacity-40">Move left</button><button type="button" onClick={() => moveImage(index, 1)} disabled={index === images.length - 1} className="rounded-md border border-[#dfd2c4] px-2 py-1 text-[10px] font-bold disabled:cursor-not-allowed disabled:opacity-40">Move right</button></div></div></article>)}{(!images || images.length === 0) && <label className="body-font col-span-full flex min-h-64 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#c9b8aa] bg-[#fdf8f0] p-6 text-center"><span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f5e8dc] text-2xl text-[#b65b2a]">▧</span><p className="mt-4 text-sm font-bold">Upload menu pages</p><p className="mt-2 max-w-xs text-[10px] leading-4 text-[#917d6e]">Select one or more JPG, PNG or WebP images. Customers will view these pages on the restaurant menu.</p><input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={handleUpload} className="sr-only" /></label>}</div>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {(images || []).map((image, index) => (
+              <article key={`${image.name}-${index}`} className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+                <img src={image.url} alt={`Menu page ${index + 1}`} className="aspect-[3/4] w-full object-cover" />
+                <div className="p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="truncate text-xs font-bold text-white">Page {index + 1}</p>
+                    <button type="button" onClick={() => removeImage(index)} className="text-xs font-bold text-rose-400 hover:text-rose-300">Remove</button>
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <button type="button" onClick={() => moveImage(index, -1)} disabled={index === 0} className="rounded-md border border-zinc-800 bg-black px-2 py-1 text-[10px] font-bold text-zinc-300 disabled:cursor-not-allowed disabled:opacity-40">Move left</button>
+                    <button type="button" onClick={() => moveImage(index, 1)} disabled={index === images.length - 1} className="rounded-md border border-zinc-800 bg-black px-2 py-1 text-[10px] font-bold text-zinc-300 disabled:cursor-not-allowed disabled:opacity-40">Move right</button>
+                  </div>
+                </div>
+              </article>
+            ))}
+            {(!images || images.length === 0) && (
+              <label className="col-span-full flex min-h-64 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-zinc-800 bg-zinc-900/40 p-6 text-center hover:border-zinc-700 transition-colors">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-800 text-2xl text-[#f5ba4b]">▧</span>
+                <p className="mt-4 text-sm font-bold text-white">Upload menu pages</p>
+                <p className="mt-2 max-w-xs text-xs leading-5 text-zinc-400">Select one or more JPG, PNG or WebP images. Customers will view these pages on the restaurant menu.</p>
+                <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={handleUpload} className="sr-only" />
+              </label>
+            )}
+          </div>
         </section>
       </div>
     </main>
