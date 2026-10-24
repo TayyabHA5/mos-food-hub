@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { QRCodeCanvas } from 'qrcode.react'
+import Link from 'next/link'
 
 export default function RestaurantAdminDashboard() {
   const [notifications, setNotifications] = useState([])
@@ -25,11 +26,12 @@ export default function RestaurantAdminDashboard() {
           id: Date.now(),
           table: Math.floor(Math.random() * 20) + 1,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          status: 'pending'
+          status: 'pending',
         }
-        setNotifications(prev => [newNotif, ...prev].slice(0, 10))
-        // Play alert sound logic
-        try { new Audio('/alert.mp3').play() } catch(e) {}
+        setNotifications((prev) => [newNotif, ...prev].slice(0, 10))
+        try {
+          new Audio('/alert.mp3').play()
+        } catch (e) {}
       }
     }, 8000)
 
@@ -37,14 +39,14 @@ export default function RestaurantAdminDashboard() {
   }, [router])
 
   const dismissNotif = (id) => {
-    setNotifications(prev => prev.filter(n => n.id !== id))
+    setNotifications((prev) => prev.filter((n) => n.id !== id))
   }
 
   const downloadQR = (tableNum) => {
     const canvas = document.getElementById(`qr-table-${tableNum}`)
     if (canvas) {
-      const url = canvas.toDataURL("image/png")
-      const link = document.createElement("a")
+      const url = canvas.toDataURL('image/png')
+      const link = document.createElement('a')
       link.download = `QR-Table-${tableNum}.png`
       link.href = url
       link.click()
@@ -52,82 +54,99 @@ export default function RestaurantAdminDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-[#08121e] text-[#e6edf8]">
-      <nav className="border-b border-[#1e2e40] bg-[#0b1722] px-6 py-4 shadow-md">
+    <main className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
+      <nav className="border-b border-slate-200 bg-white px-6 py-4 shadow-subtle">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🍕</span>
-            <h1 className="text-lg font-black tracking-tight text-white">Pizza Point <span className="text-[#8a9db0] font-medium text-xs">| Outlet Dashboard</span></h1>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white font-bold text-xs">
+              M
+            </div>
+            <h1 className="text-sm font-bold text-slate-900">Outlet Management Console</h1>
           </div>
-          <button onClick={() => { localStorage.clear(); router.push('/admin/login') }} className="text-xs font-bold text-[#8a9db0] hover:text-red-400 transition-colors">Sign Out</button>
+          <div className="flex items-center gap-4">
+            <Link href="/" className="text-xs font-semibold text-slate-600 hover:text-slate-900">
+              View Public Hub
+            </Link>
+            <button
+              onClick={() => {
+                localStorage.clear()
+                router.push('/admin/login')
+              }}
+              className="text-xs font-semibold text-slate-600 hover:text-rose-600 transition-colors"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
       </nav>
 
-      <div className="mx-auto max-w-5xl p-6 sm:p-10">
-        <div className="mb-8 flex gap-4">
+      <div className="mx-auto max-w-5xl p-6 sm:p-8">
+        <div className="mb-6 flex gap-3">
           <button
             onClick={() => setActiveTab('alerts')}
-            className={`flex-1 rounded-3xl border p-5 text-left transition-all ${
+            className={`flex-1 rounded-xl border p-4 text-left transition-colors ${
               activeTab === 'alerts'
-                ? 'border-[#f5ba4b] bg-[#0f1d2c] shadow-lg shadow-[#f5ba4b]/10'
-                : 'border-[#1e2e40] bg-[#0b1722] hover:bg-[#0f1d2c]/50'
+                ? 'border-slate-900 bg-white shadow-subtle'
+                : 'border-slate-200 bg-slate-50 hover:bg-white'
             }`}
           >
             <div className="flex items-center justify-between mb-1">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[#f5ba4b]">Live Feed</p>
-              {notifications.length > 0 && (
-                <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              )}
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Live Queue</p>
+              {notifications.length > 0 && <span className="h-2 w-2 rounded-full bg-emerald-600" />}
             </div>
-            <p className="text-xl font-black text-white">Waiter Call Alerts</p>
+            <p className="text-sm font-bold text-slate-900">Table Assistance Calls</p>
           </button>
           <button
             onClick={() => setActiveTab('qr')}
-            className={`flex-1 rounded-3xl border p-5 text-left transition-all ${
+            className={`flex-1 rounded-xl border p-4 text-left transition-colors ${
               activeTab === 'qr'
-                ? 'border-[#f5ba4b] bg-[#0f1d2c] shadow-lg shadow-[#f5ba4b]/10'
-                : 'border-[#1e2e40] bg-[#0b1722] hover:bg-[#0f1d2c]/50'
+                ? 'border-slate-900 bg-white shadow-subtle'
+                : 'border-slate-200 bg-slate-50 hover:bg-white'
             }`}
           >
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#f5ba4b] mb-1">Table Setup</p>
-            <p className="text-xl font-black text-white">QR Code Generator</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Setup</p>
+            <p className="text-sm font-bold text-slate-900">Table QR Generator</p>
           </button>
         </div>
 
         {activeTab === 'alerts' ? (
           <div className="space-y-4">
-            <div className="flex items-center justify-between px-2 pb-2 border-b border-[#1e2e40]">
-              <h2 className="text-lg font-bold text-white">Incoming Table Calls</h2>
-              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 text-[10px] font-bold text-emerald-400 uppercase tracking-tight">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="flex items-center justify-between px-1 pb-2 border-b border-slate-200">
+              <h2 className="text-sm font-bold text-slate-900">Active Requests</h2>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
                 Live Monitoring
               </span>
             </div>
 
             {notifications.length === 0 ? (
-              <div className="rounded-[36px] border border-dashed border-[#1e2e40] bg-[#0f1d2c]/50 py-20 text-center">
-                <span className="text-3xl block mb-2">🔔</span>
-                <p className="text-sm font-medium text-[#8a9db0]">No active table calls right now.</p>
-                <p className="text-xs text-[#5b6e82] mt-1">New waiter call requests will appear here in real-time.</p>
+              <div className="rounded-xl border border-slate-200 bg-white py-16 text-center shadow-subtle">
+                <p className="text-xs font-semibold text-slate-800">No active calls</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Diner requests from table QR codes will appear here in real time.
+                </p>
               </div>
             ) : (
-              <div className="grid gap-4">
-                {notifications.map(notif => (
-                  <div key={notif.id} className="flex items-center justify-between rounded-3xl border border-[#1e2e40] bg-[#0f1d2c] p-5 shadow-xl animate-in fade-in duration-200 hover:border-[#f5ba4b]/30">
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f5ba4b] text-2xl font-black text-[#121110] shadow-md shadow-[#f5ba4b]/15">
+              <div className="grid gap-3">
+                {notifications.map((notif) => (
+                  <div
+                    key={notif.id}
+                    className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-subtle hover:border-slate-300 transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100 text-base font-bold text-slate-900 border border-slate-200">
                         {notif.table}
                       </div>
                       <div>
-                        <p className="text-base font-bold text-white">Table {notif.table} Requested Assistance</p>
-                        <p className="text-xs font-mono text-[#8a9db0] mt-0.5">Call Received at {notif.time}</p>
+                        <p className="text-sm font-bold text-slate-900">Table {notif.table} Requested Assistance</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Call Received at {notif.time}</p>
                       </div>
                     </div>
                     <button
                       onClick={() => dismissNotif(notif.id)}
-                      className="rounded-2xl bg-emerald-500/10 border border-emerald-500/30 px-6 py-3 text-xs font-bold text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all shadow-md"
+                      className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition-all"
                     >
-                      ✓ Dismiss Call
+                      Dismiss Call
                     </button>
                   </div>
                 ))}
@@ -135,34 +154,37 @@ export default function RestaurantAdminDashboard() {
             )}
           </div>
         ) : (
-          <div className="rounded-[36px] border border-[#1e2e40] bg-[#0f1d2c] p-8 shadow-xl">
-            <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[#1e2e40]">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-subtle">
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
               <div>
-                <h2 className="text-2xl font-black text-white">Table QR Codes</h2>
-                <p className="text-xs text-[#8a9db0]">Print or download QR labels for table placement in food court.</p>
+                <h2 className="text-xl font-bold text-slate-900">Table QR Codes</h2>
+                <p className="text-xs text-slate-500">Print or download QR labels for table placement in food court.</p>
               </div>
-              <span className="text-xs font-mono text-[#5b6e82]">Target: /restaurant/{restaurantSlug}?table=X</span>
+              <span className="text-xs text-slate-400 font-mono">Target: /restaurant/{restaurantSlug}?table=X</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
-              {tables.map(table => (
-                <div key={table} className="group relative rounded-3xl border border-[#1e2e40] bg-[#08121e] p-6 text-center transition-all hover:border-[#f5ba4b] hover:shadow-xl">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#f5ba4b]">Table Number</p>
-                  <p className="text-3xl font-black text-white mb-4">{table}</p>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+              {tables.map((table) => (
+                <div
+                  key={table}
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-center transition-all hover:bg-white hover:border-slate-300 hover:shadow-subtle"
+                >
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Table</p>
+                  <p className="text-2xl font-bold text-slate-900 mb-3">{table}</p>
 
-                  <div className="mx-auto mb-5 flex items-center justify-center rounded-2xl bg-white p-3 shadow-md w-fit">
+                  <div className="mx-auto mb-4 flex items-center justify-center rounded-lg bg-white p-2.5 border border-slate-200 w-fit">
                     <QRCodeCanvas
                       id={`qr-table-${table}`}
                       value={`${typeof window !== 'undefined' ? window.location.origin : ''}/restaurant/${restaurantSlug}?table=${table}`}
-                      size={100}
-                      level={"H"}
+                      size={90}
+                      level={'H'}
                       includeMargin={false}
                     />
                   </div>
 
                   <button
                     onClick={() => downloadQR(table)}
-                    className="w-full rounded-2xl bg-[#f5ba4b] py-3 text-[10px] font-bold uppercase tracking-wider text-[#121110] transition-all hover:bg-[#f6c360] active:scale-95 shadow-md shadow-[#f5ba4b]/10"
+                    className="w-full rounded-md bg-slate-900 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-slate-800 shadow-subtle"
                   >
                     Download PNG
                   </button>
@@ -170,11 +192,11 @@ export default function RestaurantAdminDashboard() {
               ))}
 
               <button
-                onClick={() => setTables(prev => [...prev, String(prev.length + 1)])}
-                className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-[#1e2e40] bg-[#08121e]/50 p-6 transition-all hover:bg-[#08121e] hover:border-[#f5ba4b]"
+                onClick={() => setTables((prev) => [...prev, String(prev.length + 1)])}
+                className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-5 transition-all hover:border-slate-400 hover:bg-slate-50"
               >
-                <span className="text-3xl text-[#f5ba4b]">+</span>
-                <span className="mt-2 text-[10px] font-bold uppercase tracking-widest text-[#8a9db0]">Add New Table</span>
+                <span className="text-2xl font-light text-slate-600">+</span>
+                <span className="mt-1 text-xs font-semibold text-slate-600">Add New Table</span>
               </button>
             </div>
           </div>

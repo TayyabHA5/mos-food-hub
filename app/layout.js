@@ -1,20 +1,18 @@
 import './globals.css'
 
-// Note: Google Fonts (Fraunces + Inter) is project mein use karne ke liye
-// banaya gaya hai — apne computer pe `npm run dev` chalate waqt yeh
-// automatically Google se fetch ho jayengi (internet chahiye hoga).
-// Filhaal hum globals.css mein system fonts se kaam chala rahe hain
-// taake sandbox testing mein koi masla na ho.
-
 export const metadata = {
-  title: 'MOS Food Hub',
-  description: 'Browse every Mall of Sargodha restaurant and menu in one place.',
+  title: 'MOS Food Hub | Mall of Sargodha Food Court Directory & Digital Menus',
+  description: 'Explore verified restaurant menus, actual prices, opening hours, and floor locations across Mall of Sargodha Food Court (3rd Floor).',
+  keywords: ['Mall of Sargodha', 'MOS Food Hub', 'Food Court Sargodha', 'Restaurants Sargodha', 'Digital Menus'],
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=5',
 }
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ur">
-      <body className="font-body bg-charcoal text-cream antialiased">{children}</body>
+    <html lang="en" className="scroll-smooth">
+      <body className="min-h-screen bg-[#f8fafc] text-[#0f172a] font-sans antialiased">
+        {children}
+      </body>
     </html>
   )
 }
