@@ -47,12 +47,12 @@ export default function Home() {
     }
   }
 
-  // Cuisines list calculated from data
+  // Cuisines list calculated from data (supports multiple cuisines split by /, comma, or pipe)
   const cuisines = useMemo(() => {
     const set = new Set()
     restaurantList.forEach((r) => {
       if (r.cuisine) {
-        r.cuisine.split('/').forEach((c) => {
+        r.cuisine.split(/[/,|,]/).forEach((c) => {
           const trimmed = c.trim()
           if (trimmed) set.add(trimmed)
         })
@@ -71,9 +71,21 @@ export default function Home() {
       )
 
       const matchesSearch = !query || combinedSearchText.includes(query)
+
+      // Split restaurant's assigned cuisines to support multi-chip matching
+      const restaurantCuisines = (r.cuisine || '')
+        .split(/[/,|,]/)
+        .map((c) => normalize(c))
+        .filter(Boolean)
+
+      const targetCuisine = normalize(activeCuisine)
+
       const matchesCuisine =
         activeCuisine === 'All' ||
-        normalize(r.cuisine || '').includes(normalize(activeCuisine))
+        restaurantCuisines.some(
+          (c) => c === targetCuisine || c.includes(targetCuisine) || targetCuisine.includes(c)
+        )
+
       const matchesOpen = !onlyOpen || r.is_open
 
       return matchesSearch && matchesCuisine && matchesOpen

@@ -27,6 +27,8 @@ export default function SuperAdminDashboard() {
     opening_time: '11:00',
     closing_time: '23:00',
     status_override: 'auto',
+    phone: '',
+    whatsapp: '',
   })
 
   // Edit Outlet State
@@ -40,6 +42,8 @@ export default function SuperAdminDashboard() {
     opening_time: '11:00',
     closing_time: '23:00',
     status_override: 'auto',
+    phone: '',
+    whatsapp: '',
   })
   const [editLogo, setEditLogo] = useState(null)
   const [editMenuFiles, setEditMenuFiles] = useState([])
@@ -62,6 +66,17 @@ export default function SuperAdminDashboard() {
 
     fetchRestaurants()
   }, [router])
+
+  const handleAuthError = (response, data) => {
+    if (response.status === 401 || data?.detail === 'Could not validate credentials') {
+      alert('Your admin session has expired. Please sign in again.')
+      localStorage.removeItem('mos-token')
+      localStorage.removeItem('mos-role')
+      router.push('/admin/login')
+      return true
+    }
+    return false
+  }
 
   const generateSlug = (text) => {
     return text
@@ -124,6 +139,8 @@ export default function SuperAdminDashboard() {
     data.append('opening_time', formData.opening_time || '11:00')
     data.append('closing_time', formData.closing_time || '23:00')
     data.append('status_override', formData.status_override || 'auto')
+    data.append('phone', formData.phone || '')
+    data.append('whatsapp', formData.whatsapp || '')
 
     if (selectedLogo) {
       data.append('logo', selectedLogo)
@@ -152,11 +169,14 @@ export default function SuperAdminDashboard() {
           opening_time: '11:00',
           closing_time: '23:00',
           status_override: 'auto',
+          phone: '',
+          whatsapp: '',
         })
         setSelectedFiles([])
         setSelectedLogo(null)
       } else {
         const errData = await response.json()
+        if (handleAuthError(response, errData)) return
         alert(`Server Error: ${errData.detail || 'Failed to create'}`)
       }
     } catch (err) {
@@ -177,6 +197,8 @@ export default function SuperAdminDashboard() {
       opening_time: res.opening_time || '11:00',
       closing_time: res.closing_time || '23:00',
       status_override: res.status_override || 'auto',
+      phone: res.phone || '',
+      whatsapp: res.whatsapp || '',
     })
     setEditLogo(null)
     setEditMenuFiles([])
@@ -198,6 +220,8 @@ export default function SuperAdminDashboard() {
     data.append('opening_time', editFormData.opening_time || '11:00')
     data.append('closing_time', editFormData.closing_time || '23:00')
     data.append('status_override', editFormData.status_override || 'auto')
+    data.append('phone', editFormData.phone || '')
+    data.append('whatsapp', editFormData.whatsapp || '')
 
     if (editLogo) {
       data.append('logo', editLogo)
@@ -216,11 +240,15 @@ export default function SuperAdminDashboard() {
           for (let i = 0; i < editMenuFiles.length; i++) {
             menuData.append('images', editMenuFiles[i])
           }
-          await fetch(`${backendUrl}/restaurants/${editingRestaurant.id}/menu-images`, {
+          const menuRes = await fetch(`${backendUrl}/restaurants/${editingRestaurant.id}/menu-images`, {
             method: 'POST',
             headers: { Authorization: `Bearer ${token}` },
             body: menuData,
           })
+          if (!menuRes.ok) {
+            const errData = await menuRes.json()
+            if (handleAuthError(menuRes, errData)) return
+          }
         }
 
         setShowEditModal(false)
@@ -229,6 +257,7 @@ export default function SuperAdminDashboard() {
         fetchRestaurants()
       } else {
         const errData = await response.json()
+        if (handleAuthError(response, errData)) return
         alert(`Server Error: ${errData.detail || 'Failed to update'}`)
       }
     } catch (err) {
@@ -247,7 +276,13 @@ export default function SuperAdminDashboard() {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
-      if (response.ok) fetchRestaurants()
+      if (response.ok) {
+        fetchRestaurants()
+      } else {
+        const errData = await response.json()
+        if (handleAuthError(response, errData)) return
+        alert('Failed to delete outlet')
+      }
     } catch (err) {
       alert('Network error during delete')
     }
@@ -288,6 +323,8 @@ export default function SuperAdminDashboard() {
         }
         fetchRestaurants()
       } else {
+        const errData = await response.json()
+        if (handleAuthError(response, errData)) return
         alert('Failed to delete image')
       }
     } catch (err) {
@@ -322,6 +359,8 @@ export default function SuperAdminDashboard() {
         setNewMenuFiles([])
         fetchRestaurants()
       } else {
+        const errData = await response.json()
+        if (handleAuthError(response, errData)) return
         alert('Failed to upload new menu images')
       }
     } catch (err) {
@@ -445,6 +484,14 @@ export default function SuperAdminDashboard() {
                         {formatTime12(res.opening_time)} – {formatTime12(res.closing_time)}
                       </span>
                     </div>
+                    {(res.phone || res.whatsapp) && (
+                      <div className="flex justify-between text-slate-500 dark:text-zinc-400 pt-1">
+                        <span>Contact:</span>
+                        <span className="font-semibold text-emerald-700 dark:text-emerald-400 truncate max-w-[150px]">
+                          {res.phone || res.whatsapp}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-slate-500 dark:text-zinc-400">
                       <span>Status:</span>
                       <span className={`font-semibold ${res.is_open ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-500 dark:text-zinc-500'}`}>
@@ -558,6 +605,28 @@ export default function SuperAdminDashboard() {
                     <option>2nd Floor</option>
                     <option>Food Court (3rd Floor)</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Contact Info (Phone & WhatsApp) */}
+              <div className="grid grid-cols-2 gap-3 border-t border-slate-100 dark:border-zinc-800 pt-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Phone Call Number</label>
+                  <input
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="e.g. 03001234567"
+                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-slate-800 dark:focus:border-amber-400 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">WhatsApp Number</label>
+                  <input
+                    value={formData.whatsapp}
+                    onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                    placeholder="e.g. 03001234567"
+                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:border-slate-800 dark:focus:border-amber-400 outline-none"
+                  />
                 </div>
               </div>
 
@@ -711,6 +780,28 @@ export default function SuperAdminDashboard() {
                     <option>2nd Floor</option>
                     <option>Food Court (3rd Floor)</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Contact Info (Phone & WhatsApp) */}
+              <div className="grid grid-cols-2 gap-3 border-t border-slate-100 dark:border-zinc-800 pt-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">Phone Call Number</label>
+                  <input
+                    value={editFormData.phone}
+                    onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                    placeholder="e.g. 03001234567"
+                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-slate-800 dark:focus:border-amber-400 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1 block">WhatsApp Number</label>
+                  <input
+                    value={editFormData.whatsapp}
+                    onChange={(e) => setEditFormData({ ...editFormData, whatsapp: e.target.value })}
+                    placeholder="e.g. 03001234567"
+                    className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-slate-800 dark:focus:border-amber-400 outline-none"
+                  />
                 </div>
               </div>
 
