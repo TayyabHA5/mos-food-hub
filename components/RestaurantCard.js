@@ -80,10 +80,10 @@ export default function RestaurantCard({ restaurant, backendUrl }) {
   const avgRating = restaurant.average_rating ? Number(restaurant.average_rating).toFixed(1) : null
 
   return (
-    <article className="group flex flex-col justify-between overflow-hidden rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-card-hover">
+    <article className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-card-hover">
       <div>
         {/* Card Header Media */}
-        <div className="relative h-44 w-full overflow-hidden bg-slate-100 dark:bg-zinc-900 border-b border-slate-100 dark:border-zinc-800/80">
+        <div className="relative h-44 w-full overflow-visible bg-slate-100 dark:bg-zinc-900 border-b border-slate-100 dark:border-zinc-800/80">
           {coverUrl ? (
             <img
               src={coverUrl}
@@ -103,22 +103,22 @@ export default function RestaurantCard({ restaurant, backendUrl }) {
           )}
 
           {/* Top Status & Rating Badges */}
-          <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+          <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
             {/* Open / Closed pill */}
             {restaurant.is_open ? (
-              <span className="flex items-center gap-1.5 rounded-full bg-white/90 dark:bg-black/85 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 shadow-sm backdrop-blur-sm border border-emerald-100 dark:border-emerald-900/60">
+              <span className="flex items-center gap-1.5 rounded-full bg-white/95 dark:bg-black/90 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 shadow-sm backdrop-blur-sm border border-emerald-100 dark:border-emerald-900/60">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" />
                 Open
               </span>
             ) : (
-              <span className="flex items-center gap-1.5 rounded-full bg-white/90 dark:bg-black/85 px-2.5 py-1 text-[11px] font-semibold text-slate-500 dark:text-zinc-400 shadow-sm backdrop-blur-sm border border-slate-200 dark:border-zinc-800">
+              <span className="flex items-center gap-1.5 rounded-full bg-white/95 dark:bg-black/90 px-2.5 py-1 text-[11px] font-semibold text-slate-500 dark:text-zinc-400 shadow-sm backdrop-blur-sm border border-slate-200 dark:border-zinc-800">
                 <span className="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-zinc-500" />
                 Closed
               </span>
             )}
 
             {/* Rating pill */}
-            <div className="flex items-center gap-1 rounded-full bg-white/90 dark:bg-black/85 px-2.5 py-1 text-[11px] font-semibold text-slate-800 dark:text-zinc-200 shadow-sm backdrop-blur-sm border border-slate-200 dark:border-zinc-800">
+            <div className="flex items-center gap-1 rounded-full bg-white/95 dark:bg-black/90 px-2.5 py-1 text-[11px] font-semibold text-slate-800 dark:text-zinc-200 shadow-sm backdrop-blur-sm border border-slate-200 dark:border-zinc-800">
               <svg className="h-3.5 w-3.5 text-amber-500 fill-amber-500" viewBox="0 0 24 24">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
               </svg>
@@ -127,17 +127,17 @@ export default function RestaurantCard({ restaurant, backendUrl }) {
             </div>
           </div>
 
-          {/* Outlet Logo Avatar */}
-          <div className="absolute -bottom-1 left-4 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm group-hover:border-slate-400 dark:group-hover:border-zinc-700 transition-colors">
+          {/* Redesigned Outlet Logo Avatar (100% Full Logo Visibility with object-contain & p-1.5) */}
+          <div className="absolute -bottom-5 left-4 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl border-2 border-white dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-md group-hover:border-slate-300 dark:group-hover:border-zinc-700 transition-colors z-20 p-1.5">
             {logoUrl ? (
               <img
                 src={logoUrl}
                 alt={restaurant.name}
                 onError={() => setLogoError(true)}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain rounded-xl"
               />
             ) : (
-              <span className="text-base font-bold text-slate-800 dark:text-white">
+              <span className="text-lg font-bold text-slate-800 dark:text-white">
                 {restaurant.name?.charAt(0) || 'M'}
               </span>
             )}
@@ -145,7 +145,7 @@ export default function RestaurantCard({ restaurant, backendUrl }) {
         </div>
 
         {/* Card Content Area */}
-        <div className="p-4 pt-3">
+        <div className="p-4 pt-7">
           <div className="flex items-start justify-between gap-2">
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white transition-colors group-hover:text-slate-700 dark:group-hover:text-zinc-300 line-clamp-1">

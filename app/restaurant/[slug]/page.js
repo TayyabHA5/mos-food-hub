@@ -41,6 +41,14 @@ export default function RestaurantPage({ params }) {
     fetchRestaurant()
   }, [params.slug])
 
+  // Helper for WhatsApp link
+  const getWhatsAppUrl = (num = '') => {
+    const cleaned = num.replace(/[^0-9]/g, '')
+    if (!cleaned) return ''
+    const formatted = cleaned.startsWith('0') ? `92${cleaned.slice(1)}` : cleaned
+    return `https://wa.me/${formatted}`
+  }
+
   // Keyboard navigation for Lightbox
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -262,6 +270,9 @@ export default function RestaurantPage({ params }) {
 
   const avgRating = restaurant.average_rating ? Number(restaurant.average_rating).toFixed(1) : null
 
+  const phoneNum = restaurant.phone
+  const waNum = restaurant.whatsapp || restaurant.phone
+
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-black text-[#0f172a] dark:text-zinc-100 flex flex-col font-sans transition-colors duration-200">
       <Navbar />
@@ -295,13 +306,13 @@ export default function RestaurantPage({ params }) {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
               {/* Left Outlet Info */}
               <div className="flex items-start sm:items-center gap-4">
-                <div className="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 shadow-sm">
+                <div className="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-1.5">
                   {logoUrl ? (
                     <img
                       src={logoUrl}
                       alt={restaurant.name}
                       onError={() => setLogoError(true)}
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-contain rounded-xl"
                     />
                   ) : (
                     <span className="text-2xl font-bold text-slate-800 dark:text-white">
@@ -339,7 +350,7 @@ export default function RestaurantPage({ params }) {
                     </p>
                   )}
 
-                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                  <div className="mt-2.5 flex flex-wrap items-center gap-2">
                     {restaurant.cuisine?.split('/').map((c, i) => (
                       <span
                         key={i}
@@ -349,6 +360,36 @@ export default function RestaurantPage({ params }) {
                       </span>
                     ))}
                   </div>
+
+                  {/* Direct Phone & WhatsApp Action Buttons in Hero */}
+                  {(phoneNum || waNum) && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {phoneNum && (
+                        <a
+                          href={`tel:${phoneNum}`}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-zinc-200 hover:border-slate-400 dark:hover:border-zinc-700 transition-all shadow-sm"
+                        >
+                          <svg className="h-3.5 w-3.5 text-slate-600 dark:text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                          </svg>
+                          <span>Call: {phoneNum}</span>
+                        </a>
+                      )}
+                      {waNum && (
+                        <a
+                          href={getWhatsAppUrl(waNum)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50 dark:bg-emerald-950/50 px-3 py-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/80 transition-all shadow-sm"
+                        >
+                          <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
+                            <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.333 5.001L2 22l5.122-1.341a9.946 9.946 0 0 0 4.887 1.28h.004c5.507 0 9.99-4.479 9.99-9.985 0-2.667-1.037-5.175-2.923-7.062A9.92 9.92 0 0 0 12.012 2z" />
+                          </svg>
+                          <span>WhatsApp: {waNum}</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -539,6 +580,26 @@ export default function RestaurantPage({ params }) {
                       {formatTime12(restaurant.opening_time)} – {formatTime12(restaurant.closing_time)}
                     </dd>
                   </div>
+                  {phoneNum && (
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-zinc-800/80">
+                      <dt className="text-slate-500 dark:text-zinc-400">Phone</dt>
+                      <dd>
+                        <a href={`tel:${phoneNum}`} className="font-semibold text-slate-900 dark:text-white hover:underline">
+                          {phoneNum}
+                        </a>
+                      </dd>
+                    </div>
+                  )}
+                  {waNum && (
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-zinc-800/80">
+                      <dt className="text-slate-500 dark:text-zinc-400">WhatsApp</dt>
+                      <dd>
+                        <a href={getWhatsAppUrl(waNum)} target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-700 dark:text-emerald-400 hover:underline">
+                          {waNum}
+                        </a>
+                      </dd>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-zinc-800/80">
                     <dt className="text-slate-500 dark:text-zinc-400">Order Format</dt>
                     <dd className="font-semibold text-emerald-700 dark:text-emerald-400">Dine-in & Takeaway</dd>

@@ -28,6 +28,11 @@ export default function Home() {
       .trim()
 
   useEffect(() => {
+    // Clear any active admin session when user is browsing public app
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('mos-token')
+      localStorage.removeItem('mos-role')
+    }
     fetchRestaurants()
   }, [])
 
